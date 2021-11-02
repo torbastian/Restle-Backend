@@ -1,28 +1,25 @@
-const { Schema, Mongoose, mongo, now } = require("mongoose");
-
-//Schema Variables
-var Schema = Mongoose.Schema;
+const mongoose = require("mongoose");
 
 //Schemas
-var ListSchema = new Schema({
-    board:{
+var ListSchema = new mongoose.Schema; ({
+    board: {
         board: mongoose.Schema.Types.ObjectId,
         ref: "BoardSchema",
         require: true
     },
     created_date: {
         Date,
-        default:now()
+        default: now()
     },
     last_edited: {
         Date,
-        default:now()
+        default: now()
     },
     title: {
         String,
         require: true
     },
-    cards:[{
+    cards: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "CardSchema"
     }]
@@ -30,5 +27,5 @@ var ListSchema = new Schema({
 
 //Compiled model
 
-var ListModel = Mongoose.model('Lists', ListSchema);
+var ListModel = mongoose.model('Lists', ListSchema);
 module.exports = ListModel;
