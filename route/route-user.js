@@ -3,12 +3,10 @@ const { hash, encrypt, decrypt } = require('../helpers/crypt');
 const User = require('../models/user_model');
 const jwt = require('jsonwebtoken');
 const { reqToUser } = require('../helpers/req_converter');
-const mongoose = require('mongoose');
 const { registerValidation } = require('../helpers/validation');
+const verify = require('./token-validator');
 
 router.post('/register', async (req, res) => {
-  //userRegisterValidation()
-
   const reqUser = reqToUser(req);
 
   const { error } = registerValidation(reqUser);
