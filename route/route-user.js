@@ -6,3 +6,7 @@ router.post('/register', async (req, res) => {
 
   //const usernameExists = await User.findOne
 });
+
+router.get('/login', async (req, res) => {
+    //Login
+})
