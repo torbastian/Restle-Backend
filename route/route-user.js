@@ -3,7 +3,7 @@ const { hash, compare, encrypt, decrypt } = require('../helpers/crypt');
 const User = require('../models/user_model');
 const jwt = require('jsonwebtoken');
 const { reqToUser } = require('../helpers/req_converter');
-const { registerValidation } = require('../helpers/validation');
+const { registerValidation, loginValidation } = require('../helpers/validation');
 const verify = require('./token-validator');
 
 router.post('/register', async (req, res) => {
@@ -61,6 +61,11 @@ function getUserInfo(user) {
 //Indsætter kommentar efter frokost
 router.post('/login', async (req, res) => {
 
+
+  const { error } = loginValidation(req.body);
+  if (error) {
+    return res.status(400).send({ message: error.details[0].message });
+  }
   const user = await User.findOne({username: req.body.username});
   if (user == null) {
     return res.status(400).send('Cannot find user')

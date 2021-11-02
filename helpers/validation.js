@@ -13,4 +13,14 @@ function registerValidation(data) {
   return joiSchema.validate(data);
 }
 
+function loginValidation(data) {
+  const joiSchema = Joi.object({
+    username: Joi.string().min(4).max(16).required(),
+    password: Joi.string().min(6).max(40).required(),
+  });
+
+  return joiSchema.validate(data);
+}
+
 exports.registerValidation = registerValidation;
+exports.loginValidation = loginValidation;
