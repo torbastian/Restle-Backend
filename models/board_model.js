@@ -1,6 +1,6 @@
 const { Schema, Mongoose, mongo, now } = require("mongoose");
 
-//Schema Variables
+//Schema Variabler
 var Schema = Mongoose.Schema;
 
 //Schemas
@@ -36,3 +36,4 @@ var BoardSchema = new Schema({
 //Compiled model
 
 var BoardModel = Mongoose.model('Boards', BoardSchema);
+module.exports = BoardModel;

@@ -33,3 +33,4 @@ var CardSchema = new Schema({
 //Compiled model
 
 var CardModel = Mongoose.model('Cards', CardSchema);
+module.exports = CardModel;

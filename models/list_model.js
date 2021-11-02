@@ -30,4 +30,5 @@ var ListSchema = new Schema({
 
 //Compiled model
 
-var CardModel = Mongoose.model('Lists', ListSchema);
+var ListModel = Mongoose.model('Lists', ListSchema);
+module.exports = ListModel;

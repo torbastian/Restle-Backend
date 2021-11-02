@@ -42,3 +42,4 @@ var UserSchema = new Schema({
 //Compiled model
 
 var UserModel = Mongoose.model('Users', UserSchema);
+module.exports = UserModel;
