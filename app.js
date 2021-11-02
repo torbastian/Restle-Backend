@@ -25,11 +25,11 @@ console.log(process.env.DB_CONNECTION);
 mongoose.connect(process.env.DB_CONNECTION,
   {
     useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true
-  }, () => {
-    console.log('Connected to db');
+    useUnifiedTopology: true
   }
+).then(
+  () => { console.log("Connected to DB") },
+  err => { console.log(err) }
 );
 
 const server = app.listen(3001);
