@@ -81,11 +81,11 @@ router.post('/login', async (req, res) => {
   catch{
     res.status(500).send
   }
+});
 
-
-
-
- });
+router.get('/logout', async (req, res) => {
+  res.clearCookie('JWT').send();
+});
 
 
 
