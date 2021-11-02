@@ -8,10 +8,12 @@ var SessionSchema = new Schema({
     user:{
         user: mongoose.Schema.Types.ObjectId,
         ref: "UserSchema",
+        require: true
     },
-    require: true,
-    token: String,
-    require: true,
+    token: {
+        String,
+        require: true
+    }
 });
 
 //Compiled model

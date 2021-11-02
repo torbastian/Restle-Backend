@@ -5,12 +5,18 @@ var Schema = Mongoose.Schema;
 
 //Schemas
 var BoardSchema = new Schema({
-    created_date: Date,
-    default:now(),
-    last_edited: Date,
-    default:now(),
-    title: String,
-    require: true,
+    created_date: {
+        Date,
+        default:now()
+    },
+    last_edited: {
+        Date,
+        default:now()
+    },
+    title: {
+        String,
+        require: true
+    },
     owner:{
         owner: mongoose.Schema.Types.ObjectId,
         ref: "UserSchema"

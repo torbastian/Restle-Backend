@@ -7,15 +7,21 @@ var Schema = Mongoose.Schema;
 var CardSchema = new Schema({
     board:{
         board: mongoose.Schema.Types.ObjectId,
-        ref: "BoardSchema"
+        ref: "BoardSchema",
+        require: true
     },
-    require: true,
-    created_date: Date,
-    default:now(),
-    last_edited: Date,
-    default:now(),
-    title: String,
-    require: true,
+    created_date: {
+        Date,
+        default:now()
+    },
+    last_edited: {
+        Date,
+        default:now()
+    },
+    title: {
+        String,
+        require: true
+    },
     description: String,
 
     members:[{
