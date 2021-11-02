@@ -58,19 +58,25 @@ function getUserInfo(user) {
 }
 
 
-//Indsætter kommentar efter frokost
+//Login
 router.post('/login', async (req, res) => {
 
-
+  //Checker om brugerens credentials er valid
   const { error } = loginValidation(req.body);
   if (error) {
     return res.status(400).send({ message: error.details[0].message });
   }
+
+  //Gemmer brugeren med det indtastet brugernavn
   const user = await User.findOne({username: req.body.username});
+  
+  //Udskriver fejl hvis brugeren ikke findes
   if (user == null) {
     return res.status(400).send('Cannot find user')
   }
+
   try {
+    //Hvis brugeren har indtastet deres password korrekt får de angivet et JSON web token.
     if(compare(req.body.password, user.password))
     {
       const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
@@ -80,16 +86,19 @@ router.post('/login', async (req, res) => {
         sameSite: 'lax'
       }).send(getUserInfo(user));
     }
+    //Hvis brugeren har indtastet deres password forkert
     else
     {
       res.send('Not allowed')
     }
   }
+  //Catch status ved fejl
   catch{
     res.status(500).send
   }
 });
 
+//Simpel logout der sletter brugerens Json web token.
 router.get('/logout', async (req, res) => {
   res.clearCookie('JWT').send();
 });
