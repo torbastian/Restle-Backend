@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { hash, encrypt, decrypt } = require('../helpers/crypt');
+const { hash, compare, encrypt, decrypt } = require('../helpers/crypt');
 const User = require('../models/user_model');
 const jwt = require('jsonwebtoken');
 const { reqToUser } = require('../helpers/req_converter');
@@ -54,5 +54,39 @@ function getUserInfo(user) {
     isAdmin: user.isAdmin
   })
 }
+
+
+
+router.post('/login', async (req, res) => {
+
+  const user = await User.findOne({username: req.body.username});
+  if (user == null) {
+    return res.status(400).send('Cannot find user')
+  }
+  try {
+    if(compare(req.body.password, user.password))
+    {
+      const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
+      res.cookie('JWT', token, {
+        maxAge: 86_400_800,
+        httpOnly: true,
+        sameSite: 'lax'
+      }).send(getUserInfo(user));
+    }
+    else
+    {
+      res.send('Not allowed')
+    }
+  }
+  catch{
+    res.status(500).send
+  }
+
+
+
+
+ });
+
+
 
 module.exports = router;
