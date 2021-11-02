@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const Session = require('../models/session_model');
 
 //validere en token ud fra en request cookie
 function validateToken(req, res, next) {
