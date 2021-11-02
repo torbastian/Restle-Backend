@@ -3,12 +3,12 @@ const mongoose = require("mongoose");
 //Schemas
 var SessionSchema = new mongoose.Schema({
     user: {
-        user: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "UserSchema",
         require: true
     },
     token: {
-        String,
+        type: String,
         require: true
     }
 });

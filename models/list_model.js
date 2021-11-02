@@ -1,22 +1,22 @@
 const mongoose = require("mongoose");
 
 //Schemas
-var ListSchema = new mongoose.Schema; ({
+var ListSchema = new mongoose.Schema({
     board: {
-        board: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "BoardSchema",
         require: true
     },
     created_date: {
-        Date,
-        default: now()
+        type: Date,
+        default: Date.now
     },
     last_edited: {
-        Date,
-        default: now()
+        type: Date,
+        default: Date.now
     },
     title: {
-        String,
+        type: String,
         require: true
     },
     cards: [{

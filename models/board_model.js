@@ -3,22 +3,21 @@ const mongoose = require("mongoose");
 //Schemas
 var BoardSchema = new mongoose.Schema({
     created_date: {
-        Date,
-        default: now()
+        type: Date,
+        default: Date.now
     },
     last_edited: {
-        Date,
-        default: now()
+        type: Date,
+        default: Date.now
     },
     title: {
-        String,
+        type: String,
         require: true
     },
     owner: {
-        owner: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "UserSchema"
     },
-
     members: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "UserSchema"

@@ -3,35 +3,35 @@ const mongoose = require('mongoose');
 //Schemas
 var UserSchema = new mongoose.Schema({
     create_date: {
-        Date,
-        default: now()
+        type: Date,
+        default: Date.now
     },
     username: {
-        String,
+        type: String,
         require: true
     },
     email: {
-        String,
+        type: String,
         require: true
     },
     password: {
-        String,
+        type: String,
         require: true
     },
     first_name: {
-        String,
+        type: String,
         require: true
     },
     last_name: {
-        String,
+        type: String,
         require: true
     },
     colour: {
-        String,
+        type: String,
         default: "#FFF"
     },
     isAdmin: {
-        Boolean,
+        type: Boolean,
         default: false
     }
 });
