@@ -1,13 +1,11 @@
-const { Schema, Mongoose, now } = require("mongoose");
-
-//Schema Variables
-var Schema = Mongoose.Schema;
+//const { Schema, Mongoose, now } = require("mongoose");
+const mongoose = require('mongoose');
 
 //Schemas
-var UserSchema = new Schema({
+var UserSchema = new mongoose.Schema({
     create_date: {
         Date,
-        default:now()
+        default: now()
     },
     username: {
         String,
@@ -31,14 +29,15 @@ var UserSchema = new Schema({
     },
     colour: {
         String,
-        default:"#FFF"
+        default: "#FFF"
     },
     isAdmin: {
         Boolean,
-        default:false
+        default: false
     }
 });
 
 //Compiled model
 
-var UserModel = Mongoose.model('Users', UserSchema);
+var UserModel = mongoose.model('Users', UserSchema);
+module.exports = UserModel;
