@@ -1,16 +1,20 @@
-const { Schema, Mongoose, mongo } = require("mongoose");
+const { Schema, Mongoose, mongo, now } = require("mongoose");
 
 //Schema Variables
 var Schema = Mongoose.Schema;
 
 //Schemas
 var BoardSchema = new Schema({
-    board_id: Number,
     created_date: Date,
+    default:now(),
     last_edited: Date,
+    default:now(),
     title: String,
-    owner: mongoose.Schema.Types.ObjectId,
-    ref: "UserSchema",
+    require: true,
+    owner:{
+        owner: mongoose.Schema.Types.ObjectId,
+        ref: "UserSchema"
+    },
 
     members:[{
         type: mongoose.Schema.Types.ObjectId,

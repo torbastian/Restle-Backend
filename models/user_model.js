@@ -1,19 +1,26 @@
-const { Schema, Mongoose } = require("mongoose");
+const { Schema, Mongoose, now } = require("mongoose");
 
 //Schema Variables
 var Schema = Mongoose.Schema;
 
 //Schemas
 var UserSchema = new Schema({
-    user_id: Number,
     create_date: Date,
+    default:now(),
     username: String,
+    require: true,
     email: String,
+    require: true,
     password: String,
+    require: true,
     first_name: String,
+    require: true,
     last_name: String,
+    require: true,
     colour: String,
-    isAdmin: Boolean
+    default:"#FFF",
+    isAdmin: Boolean,
+    default:false
 });
 
 //Compiled model

@@ -5,9 +5,13 @@ var Schema = Mongoose.Schema;
 
 //Schemas
 var SessionSchema = new Schema({
-    user: mongoose.Schema.Types.ObjectId,
-    ref: "UserSchema",
-    token: String
+    user:{
+        user: mongoose.Schema.Types.ObjectId,
+        ref: "UserSchema",
+    },
+    require: true,
+    token: String,
+    require: true,
 });
 
 //Compiled model

@@ -1,16 +1,21 @@
-const { Schema, Mongoose, mongo } = require("mongoose");
+const { Schema, Mongoose, mongo, now } = require("mongoose");
 
 //Schema Variables
 var Schema = Mongoose.Schema;
 
 //Schemas
 var ListSchema = new Schema({
-    list_id: Number,
-    board: mongoose.Schema.Types.ObjectId,
-    ref: "BoardSchema",
+    board:{
+        board: mongoose.Schema.Types.ObjectId,
+        ref: "BoardSchema"
+    },
+    require: true,
     created_date: Date,
+    default:now(),
     last_edited: Date,
+    default:now(),
     title: String,
+    require: true,
     cards:[{
         type: mongoose.Schema.Types.ObjectId,
         ref: "CardSchema"
