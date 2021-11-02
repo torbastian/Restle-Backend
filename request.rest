@@ -1,0 +1,23 @@
+POST http://localhost:3001/user/register
+Content-Type: application/json
+
+{
+    
+    "username":"test123",
+    "email":"test111111111@email.com",
+    "first_name":"testblablabla",
+    "last_name":"testerman",
+    "colour":"#fff",
+    "password":"123456"
+
+}
+
+###
+
+POST http://localhost:3001/user/login
+Content-Type: application/json
+
+{
+    "username":"test12",
+    "password":"123456"
+}
