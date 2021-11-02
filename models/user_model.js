@@ -1,4 +1,3 @@
-//const { Schema, Mongoose, now } = require("mongoose");
 const mongoose = require('mongoose');
 
 //Schemas

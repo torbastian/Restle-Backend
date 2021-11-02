@@ -1,22 +1,19 @@
-const { Schema, Mongoose, mongo, now } = require("mongoose");
-
-//Schema Variables
-var Schema = Mongoose.Schema;
+const mongoose = require("mongoose");
 
 //Schemas
-var CardSchema = new Schema({
-    board:{
+var CardSchema = new mongoose.Schema; ({
+    board: {
         board: mongoose.Schema.Types.ObjectId,
         ref: "BoardSchema",
         require: true
     },
     created_date: {
         Date,
-        default:now()
+        default: now()
     },
     last_edited: {
         Date,
-        default:now()
+        default: now()
     },
     title: {
         String,
@@ -24,7 +21,7 @@ var CardSchema = new Schema({
     },
     description: String,
 
-    members:[{
+    members: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "UserSchema"
     }]
