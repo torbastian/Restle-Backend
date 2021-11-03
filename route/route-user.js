@@ -4,7 +4,13 @@ const User = require('../models/user_model');
 const jwt = require('jsonwebtoken');
 const { reqToUser } = require('../helpers/req_converter');
 const { registerValidation } = require('../helpers/validation');
-const verify = require('./token-validator');
+const { validateToken } = require('../helpers/token_handler');
+//const session = require("./helpers/token_handler");
+
+//TODO TEST!!
+router.get("/", validateToken, (req, res) =>{
+
+});
 
 router.post('/register', async (req, res) => {
   const reqUser = reqToUser(req);
@@ -59,6 +65,7 @@ function getUserInfo(user) {
 
 
 //Indsætter kommentar efter frokost
+//TODO du har glemt dine kommentare
 router.post('/login', async (req, res) => {
 
   const user = await User.findOne({username: req.body.username});
