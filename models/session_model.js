@@ -14,6 +14,5 @@ var SessionSchema = new mongoose.Schema({
 });
 
 //Compiled model
-
 var SessionModel = mongoose.model('Sessions', SessionSchema);
 module.exports = SessionModel;

@@ -4,7 +4,6 @@ const User = require('../models/user_model');
 const jwt = require('jsonwebtoken');
 const { reqToUser } = require('../helpers/req_converter');
 const { registerValidation, loginValidation } = require('../helpers/validation');
-const verify = require('./token-validator');
 const { signUserToken, newUser } = require('../helpers/user_helper');
 const SessionModel = require('../models/session_model');
 
