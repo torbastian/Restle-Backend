@@ -47,7 +47,7 @@ router.post('/login', async (req, res) => {
 
   //Udskriver fejl hvis brugeren ikke findes
   if (user == null) {
-    return res.status(400).send('Cannot find user')
+    return res.status(400).send({message: "Username or password is invalid"});
   }
 
   try {
@@ -57,12 +57,12 @@ router.post('/login', async (req, res) => {
     }
     //Hvis brugeren har indtastet deres password forkert
     else {
-      res.send('Not allowed')
+      res.status(400).send({message: "Username or password is invalid"});
     }
   }
   //Catch status ved fejl
   catch {
-    res.status(500).send
+    res.status(500).send();
   }
 });
 
