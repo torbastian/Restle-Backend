@@ -4,6 +4,10 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const app = express();
+const session = require("./helpers/token_handler");
+
+//test shit
+const jwt = require('jsonwebtoken');
 
 //Importer routes
 const userRoute = require('./route/route-user');
