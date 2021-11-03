@@ -7,6 +7,7 @@ const app = express();
 
 //Importer routes
 const userRoute = require('./route/route-user');
+const { startWebscoketServer } = require('./helpers/websocket');
 
 app.use(cors({ origin: 'http://localhost:3001', credentials: true }));
 app.use(cookieParser());
@@ -33,3 +34,5 @@ mongoose.connect(process.env.DB_CONNECTION,
 );
 
 const server = app.listen(3001);
+
+const wss = startWebscoketServer(server);

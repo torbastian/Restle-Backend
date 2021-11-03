@@ -6,6 +6,7 @@ const { reqToUser } = require('../helpers/req_converter');
 const { registerValidation, loginValidation } = require('../helpers/validation');
 const verify = require('./token-validator');
 const { signUserToken, newUser } = require('../helpers/user_helper');
+const SessionModel = require('../models/session_model');
 
 router.post('/register', async (req, res) => {
   const reqUser = reqToUser(req);
