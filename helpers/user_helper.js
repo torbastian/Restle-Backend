@@ -1,11 +1,15 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user_model');
 const { hash, encrypt } = require('./crypt');
+const { TokenHandler } = require('./token_handler');
 
-function signUserToken(user, res) {
+async function signUserToken(user, res) {
   console.log("Test");
   try {
     const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
+
+    await TokenHandler(user._id, token);
+
     res.cookie('JWT', token, {
       maxAge: 86_400_800,
       httpOnly: true,

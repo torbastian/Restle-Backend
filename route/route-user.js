@@ -4,9 +4,7 @@ const User = require('../models/user_model');
 const jwt = require('jsonwebtoken');
 const { reqToUser } = require('../helpers/req_converter');
 const { registerValidation, loginValidation } = require('../helpers/validation');
-const verify = require('./token-validator');
 const { signUserToken, newUser } = require('../helpers/user_helper');
-const SessionModel = require('../models/session_model');
 
 router.post('/register', async (req, res) => {
   const reqUser = reqToUser(req);
@@ -47,7 +45,7 @@ router.post('/login', async (req, res) => {
 
   //Udskriver fejl hvis brugeren ikke findes
   if (user == null) {
-    return res.status(400).send({message: "Username or password is invalid"});
+    return res.status(400).send({ message: "Username or password is invalid" });
   }
 
   try {
@@ -57,7 +55,7 @@ router.post('/login', async (req, res) => {
     }
     //Hvis brugeren har indtastet deres password forkert
     else {
-      res.status(400).send({message: "Username or password is invalid"});
+      res.status(400).send({ message: "Username or password is invalid" });
     }
   }
   //Catch status ved fejl
