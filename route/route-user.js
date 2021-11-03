@@ -5,10 +5,12 @@ const jwt = require('jsonwebtoken');
 const { reqToUser } = require('../helpers/req_converter');
 const { registerValidation, loginValidation } = require('../helpers/validation');
 const verify = require('./token-validator');
+const { signUserToken, newUser } = require('../helpers/user_helper');
 
 router.post('/register', async (req, res) => {
   const reqUser = reqToUser(req);
 
+  //Valider om brugerens indtastede felter er valid
   const { error } = registerValidation(reqUser);
   if (error) return res.status(400).send({ message: error.details[0].message });
 
@@ -16,47 +18,19 @@ router.post('/register', async (req, res) => {
   const usernameExists = await User.findOne({ username: reqUser.username });
   if (usernameExists) return res.status(400).send({ message: 'Username in use' });
 
-  //Hash og salt password
-  const hashedPassword = hash(reqUser.password);
-
-  //Opret bruger
-  const user = new User({
-    username: reqUser.username,
-    password: hashedPassword,
-    first_name: reqUser.first_name,
-    last_name: encrypt(reqUser.last_name),
-    email: reqUser.email,
-    colour: reqUser.colour
-  });
+  //Opret en ny bruger
+  const user = newUser(reqUser);
 
   try {
-    //Hvis brugeren bliver oprettet
+    //Hvis brugern bliver gemt
     //Send en token med tilbage
     await user.save().then(savedUser => {
-      const token = jwt.sign({ _id: savedUser._id }, process.env.TOKEN_SECRET);
-      res.cookie('JWT', token, {
-        maxAge: 86_400_800,
-        httpOnly: true,
-        sameSite: 'lax'
-      }).send(getUserInfo(user));
+      signUserToken(savedUser, res);
     })
   } catch (err) {
     res.status(400).send(err);
   }
 });
-
-function getUserInfo(user) {
-  return JSON.stringify({
-    _id: user._id,
-    username: user.username,
-    create_date: user.create_date,
-    first_name: user.first_name,
-    last_name: user.last_name,
-    email: user.email,
-    isAdmin: user.isAdmin
-  })
-}
-
 
 //Login
 router.post('/login', async (req, res) => {
@@ -68,8 +42,8 @@ router.post('/login', async (req, res) => {
   }
 
   //Gemmer brugeren med det indtastet brugernavn
-  const user = await User.findOne({username: req.body.username});
-  
+  const user = await User.findOne({ username: req.body.username });
+
   //Udskriver fejl hvis brugeren ikke findes
   if (user == null) {
     return res.status(400).send('Cannot find user')
@@ -77,23 +51,16 @@ router.post('/login', async (req, res) => {
 
   try {
     //Hvis brugeren har indtastet deres password korrekt får de angivet et JSON web token.
-    if(compare(req.body.password, user.password))
-    {
-      const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
-      res.cookie('JWT', token, {
-        maxAge: 86_400_800,
-        httpOnly: true,
-        sameSite: 'lax'
-      }).send(getUserInfo(user));
+    if (compare(req.body.password, user.password)) {
+      signUserToken(user, res);
     }
     //Hvis brugeren har indtastet deres password forkert
-    else
-    {
+    else {
       res.send('Not allowed')
     }
   }
   //Catch status ved fejl
-  catch{
+  catch {
     res.status(500).send
   }
 });
@@ -102,7 +69,5 @@ router.post('/login', async (req, res) => {
 router.get('/logout', async (req, res) => {
   res.clearCookie('JWT').send();
 });
-
-
 
 module.exports = router;
