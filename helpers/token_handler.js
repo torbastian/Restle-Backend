@@ -99,9 +99,6 @@ async function validateToken(req, res, next) {
     const verified = jwt.verify(token, process.env.TOKEN_SECRET);
     req.user = verified;
 
-    await TokenHandler(req.user, token);
-    
-
     next();
   } catch (err) {
     res.status(400).send({ message: 'Invalid token' });
@@ -109,3 +106,4 @@ async function validateToken(req, res, next) {
 }
 
 exports.validateToken = validateToken;
+exports.TokenHandler = TokenHandler;
