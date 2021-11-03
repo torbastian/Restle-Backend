@@ -99,6 +99,12 @@ async function validateToken(req, res, next) {
     const verified = jwt.verify(token, process.env.TOKEN_SECRET);
     req.user = verified;
 
+    let tokenHandler = await TokenHandler(reg.user, token);
+
+    if(!tokenHandler.success){
+        res.status(400).send({ message: 'Database error. Token not saved'});
+    }
+
     next();
   } catch (err) {
     res.status(400).send({ message: 'Invalid token' });
