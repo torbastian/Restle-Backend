@@ -44,10 +44,10 @@ function startWebscoketServer(server) {
           break;
       }
     });
-  });
 
-  ws.on('close', () => {
-    console
+    ws.on('close', () => {
+      console
+    });
   });
 
   return wss;
