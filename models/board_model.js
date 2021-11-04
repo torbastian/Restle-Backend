@@ -31,5 +31,5 @@ var BoardSchema = new mongoose.Schema({
 
 //Compiled model
 
-var BoardModel = mongoose.model('Boards', BoardSchema);
+const BoardModel = mongoose.model('Boards', BoardSchema);
 module.exports = BoardModel;

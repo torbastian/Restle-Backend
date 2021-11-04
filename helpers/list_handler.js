@@ -1,5 +1,27 @@
 const List = require("../models/list_model");
 
+async function GetLists(board_id){
+    try{
+        List.find({board: board_id}).then(lists => {
+            return{
+                success: true,
+                message: "boardeds lister blev fundet",
+                object: lists
+            }
+        }).catch(err => {
+            return{
+                success: false,
+                message: "Kunne ikke hente lister. " + err
+            }
+        });
+    }catch(err){
+        return{
+            success: false,
+            message: "Kunne ikke hente lister. " + err
+        }
+    }
+}
+
 async function CreatList(board_id, title, cards = []){
     const newList = new List({
         board: board_id,
@@ -140,3 +162,4 @@ exports.DeleteList = DeleteList;
 exports.EditList = EditList;
 exports.AddCard = AddCard;
 exports.RemoveCard = RemoveCard;
+exports.GetLists = GetLists;
