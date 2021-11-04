@@ -2,7 +2,19 @@ const mongoose = require("mongoose");
 const Board = require("../models/board_model");
 const { array } = require("joi");
 
-
+async function getBoard(board_owner){
+    return await Board.find({ owner: board_owner })
+            .sort({ 'last_edited': -1 })
+            .populate({
+                path: 'owner',
+                select: 'username created first_name last_name colour'
+            })
+            .populate({
+                path: 'members',
+                select: 'username created first_name last_name colour'
+            })
+            .select('-lists');
+}
 
 async function CreateBoard(title, owner, members = [], lists = []){
     if(members.length == 0){
