@@ -1,4 +1,4 @@
-const { GetBoardList, GetBoardAsOwner, GetBoardAsMember } = require("./board_handler");
+const { GetBoardAsOwner, GetBoardAsMember } = require("./board_handler");
 
 class BoardManager {
   constructor() {
@@ -22,6 +22,7 @@ class BoardManager {
     }
   }
 
+  //Send boards til bruger
   async sendBoardList(userId) {
     if (!this.boardListSubscriptions[userId]) return;
 
@@ -29,12 +30,17 @@ class BoardManager {
     const memberOf = await GetBoardAsMember(userId);
 
     const listPackage = JSON.stringify({
+      respone: 'BOARD_LIST_RESPONSE',
       time: Date.now(),
       owned: owned,
       memberOf: memberOf
     });
 
     this.boardListSubscriptions[userId].subscriber.send(listPackage);
+  }
+
+  async unsubscribe(userId) {
+    delete this.boardListSubscriptions[userId];
   }
 }
 
