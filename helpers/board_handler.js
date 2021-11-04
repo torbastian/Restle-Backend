@@ -2,8 +2,22 @@ const mongoose = require("mongoose");
 const Board = require("../models/board_model");
 const { array } = require("joi");
 
-async function getBoard(board_owner){
+async function GetBoardAsOwner(board_owner){
     return await Board.find({ owner: board_owner })
+            .sort({ 'last_edited': -1 })
+            .populate({
+                path: 'owner',
+                select: 'username created first_name last_name colour'
+            })
+            .populate({
+                path: 'members',
+                select: 'username created first_name last_name colour'
+            })
+            .select('-lists');
+}
+
+async function GetBoardAsMember(member_id){
+    return await Board.find({ member: member_id })
             .sort({ 'last_edited': -1 })
             .populate({
                 path: 'owner',
@@ -243,3 +257,5 @@ exports.EditBoard = EditBoard;
 exports.AddMember = AddMember;
 exports.RemoveMember = RemoveMember;
 exports.ChangeOwner = ChangeOwner;
+exports.GetBoardAsMember = GetBoardAsMember;
+exports.GetBoardAsOwner = GetBoardAsOwner;
