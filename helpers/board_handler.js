@@ -3,40 +3,58 @@ const Board = require("../models/board_model");
 const { array } = require("joi");
 
 async function GetBoardAsOwner(board_owner){
-    return await Board.find({ owner: board_owner })
-            .sort({ 'last_edited': -1 })
-            .populate({
-                path: 'owner',
-                select: 'username created first_name last_name colour'
-            })
-            .populate({
-                path: 'members',
-                select: 'username created first_name last_name colour'
-            })
-            .select('-lists');
+    try{
+        const boards = await Board.find({ owner: board_owner })
+        .sort({ 'last_edited': -1 })
+        .populate({
+            path: 'owner',
+            select: 'username created first_name last_name colour'
+        })
+        .populate({
+            path: 'members',
+            select: 'username created first_name last_name colour'
+        })
+        .select('-lists')
+        return {
+            success: true,
+            message: "vi fandt " + boards.length + " som du er ejer af",
+            object: boards
+        }
+    }catch(err){
+        return{
+            success: false,
+            message: "noget gik galt da vi forsøgte at hente dine Boards. " + err
+        }
+    }
 }
 
 async function GetBoardAsMember(member_id){
-    return await Board.find({ member: member_id })
-            .sort({ 'last_edited': -1 })
-            .populate({
-                path: 'owner',
-                select: 'username created first_name last_name colour'
-            })
-            .populate({
-                path: 'members',
-                select: 'username created first_name last_name colour'
-            })
-            .select('-lists');
+    try{
+        const boards = await Board.find({ members: member_id })
+        .sort({ 'last_edited': -1 })
+        .populate({
+            path: 'owner',
+            select: 'username created first_name last_name colour'
+        })
+        .populate({
+            path: 'members',
+            select: 'username created first_name last_name colour'
+        })
+        .select('-lists')
+        return {
+            success: true,
+            message: "vi fandt " + boards.length + " som du er medlem af",
+            object: boards
+        }
+    }catch(err){
+        return{
+            success: false,
+            message: "noget gik galt da vi forsøgte at hente dine Boards. " + err
+        }
+    }
 }
 
 async function CreateBoard(title, owner, members = [], lists = []){
-    if(members.length == 0){
-        members = [owner];
-    }else if(!members.includes(owner)){
-        members.push(owner);
-    }
-    
     const newBoard = new Board({
         create_date: Date.now(),
         last_edited: Date.now(),
@@ -61,8 +79,17 @@ async function CreateBoard(title, owner, members = [], lists = []){
     }
 }
 
-async function DeleteBoard(board_id){
+async function DeleteBoard(board_id, user_id){
     try{
+        await Board.findOne({_id: board_id}).then(board => {
+            if(board.owner != user_id){
+                return{
+                    success: false,
+                    message: "board kan kun slettes af board ejer."
+                }
+            }
+        })
+
         await Board.deleteOne({_id: board_id });
         return {
             success: true,
@@ -112,12 +139,13 @@ async function AddMember(board_id, member_id){
             }
             try{
                 board.members.push(member_id);
-                await board.save();
-                return{
-                    success: true,
-                    message: "bruger er blevet medlem af board",
-                    object: board
-                };
+                board.save().then(board => {
+                    return{
+                        success: true,
+                        message: "bruger er blevet medlem af board",
+                        object: board
+                    };
+                });
             }catch(err){
                 return{
                     success: false,
@@ -144,17 +172,18 @@ async function RemoveMember(board_id, member_id){
                         message: "medlem blev ikke fjernet"
                     };
                 }
-                board.save().catch(err => { 
+                board.save().then(board => {
+                    return{
+                        success: true,
+                        message: "bruger er blevet fjernet som medlem",
+                        object: board
+                    } 
+                }).catch(err => { 
                     return{
                         success: false,
                         message: "noget gik galt da vi forsøgte at fjerne medlem. " + err
                     }
-                });
-                return{
-                    success: true,
-                    message: "bruger er blevet fjernet som medlem",
-                    object: board
-                }   
+                }); 
             }
         });
     }catch(err){
@@ -165,9 +194,13 @@ async function RemoveMember(board_id, member_id){
     }
 }
 
-async function ChangeOwner(board_id, owner_id){
+async function ChangeOwner(board_id, owner_id, make_pre_owner_member = false){
     try{
         Board.findOne({_id: board_id}).then(board => {
+            
+            if(make_pre_owner_member){
+                board.members.push(board.owner)
+            }
             board.owner = owner_id;
         });
     }catch(err){
