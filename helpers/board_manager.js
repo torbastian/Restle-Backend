@@ -1,4 +1,4 @@
-const { GetBoardAsOwner, GetBoardAsMember } = require("./board_handler");
+const { GetBoardAsOwner, GetBoardAsMember, CreateBoard } = require("./board_handler");
 
 class BoardManager {
   constructor() {
@@ -20,6 +20,10 @@ class BoardManager {
     } catch (error) {
       return false;
     }
+  }
+
+  async createNewBoard(userId, details) {
+    await CreateBoard(details.title, userId, details.description);
   }
 
   //Send boards til bruger
