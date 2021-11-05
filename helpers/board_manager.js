@@ -33,11 +33,8 @@ class BoardManager {
     const owned = await GetBoardAsOwner(userId);
     const memberOf = await GetBoardAsMember(userId);
 
-    console.log(owned);
-    console.log(memberOf);
-
     const listPackage = JSON.stringify({
-      respone: 'BOARD_LIST_RESPONSE',
+      response: 'BOARD_LIST_RESPONSE',
       time: Date.now(),
       owned: owned,
       memberOf: memberOf
