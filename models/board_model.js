@@ -34,6 +34,12 @@ var BoardSchema = new mongoose.Schema({
     }]
 });
 
+//Pre
+
+BoardSchema.pre('save', { document : true }, async function() {
+    this.last_edited = Date.now();
+  });
+
 //Compiled model
 
 const BoardModel = mongoose.model('Boards', BoardSchema);

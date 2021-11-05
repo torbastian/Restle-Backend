@@ -2,7 +2,7 @@ const List = require("../models/list_model");
 
 async function GetLists(board_id){
     try{
-        List.find({board: board_id}).then(lists => {
+        return List.find({board: board_id}).then(lists => {
             return{
                 success: true,
                 message: "boardeds lister blev fundet",
@@ -32,7 +32,7 @@ async function CreatList(board_id, title, cards = []){
     });
 
     try{
-        newList.save().then(board => {
+        return newList.save().then(board => {
             return {
                 success: true,
                 message: "liste blev gemt",
@@ -54,7 +54,7 @@ async function CreatList(board_id, title, cards = []){
 
 async function DeleteList(list_id){
     try{
-        List.deleteOne({_id: list_id}).then(list => {
+        return List.deleteOne({_id: list_id}).then(list => {
             return{
                 success: true,
                 message: "list blev slettet",
@@ -78,7 +78,7 @@ async function DeleteList(list_id){
 
 async function EditList(list_id, title){
     try{
-        List.updateOne({_id: list_id}, {title: title, last_edited: Date.now()}).then(list => {
+        return List.updateOne({_id: list_id}, {title: title, last_edited: Date.now()}).then(list => {
             if(list.modifiedCount == 1){
                 return {
                     success: true,
@@ -97,7 +97,7 @@ async function EditList(list_id, title){
 
 async function AddCard(list_id, card_id){
     try{
-        List.findOne({_id: list_id}).then(list => {
+        return List.findOne({_id: list_id}).then(list => {
             if(list.cards.includes(card_id)){
                 return{
                     success: false,
@@ -127,7 +127,7 @@ async function AddCard(list_id, card_id){
 
 async function RemoveCard(list_id, card_id){
     try{
-        List.findOne({_id: list_id}).then(list => {
+        return List.findOne({_id: list_id}).then(list => {
             if(!list.cards.includes(card_id)){
                 return{
                     success: false,

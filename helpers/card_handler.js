@@ -2,7 +2,7 @@ const Card = require("../models/card_model");
 
 async function GetCards(board_id){
     try{
-        Card.find({board: board_id}).then(cards =>{
+        return Card.find({board: board_id}).then(cards =>{
             return{
                 success: true,
                 message: "Boardes kort blev fundet",
@@ -34,7 +34,7 @@ async function CreateCard(board_id, title, description, members = []){
     });
 
     try{
-        newCard.save().then(card =>{
+        return newCard.save().then(card =>{
             return{
                 success: true,
                 message: "Kort er blevet gemt",
@@ -56,7 +56,7 @@ async function CreateCard(board_id, title, description, members = []){
 
 async function DeleteCard(card_id){
     try{
-        Card.deleteOne({_id: card_id}).then(card => {
+        return Card.deleteOne({_id: card_id}).then(card => {
             return{
                 success: true,
                 message: "Kort blev slettet",

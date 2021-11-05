@@ -4,7 +4,6 @@ const User = require("../models/user_model")
 
 async function GetBoardAsOwner(board_owner){
     try{
-        console.log("hej. " + board_owner);
         return await Board.find({ owner: board_owner })
         .sort({ 'last_edited': -1 })
         .populate({
@@ -39,7 +38,7 @@ async function GetBoardAsOwner(board_owner){
 
 async function GetBoardAsMember(member_id){
     try{
-        const boards = await Board.find({ members: member_id })
+        return await Board.find({ members: member_id })
         .sort({ 'last_edited': -1 })
         .populate({
             path: 'owner',
@@ -76,7 +75,7 @@ async function CreateBoard(title, owner, description = "", members = [], lists =
     });
 
     try{
-        await newBoard.save().then(board => {
+        return await newBoard.save().then(board => {
             return {
                 success: true,
                 message: "board blev gemt",
@@ -98,7 +97,7 @@ async function CreateBoard(title, owner, description = "", members = [], lists =
 
 async function DeleteBoard(board_id, user_id){
     try{
-        await Board.findOne({_id: board_id}).then(board => {
+        return await Board.findOne({_id: board_id}).then(board => {
             if(board.owner != user_id){
                 return{
                     success: false,
@@ -122,7 +121,7 @@ async function DeleteBoard(board_id, user_id){
 
 async function EditBoard(board_id, title){
     try{
-        Board.updateOne({_id: board_id}, {title: title, last_edited: Date.now()}).then(board => {
+        return Board.updateOne({_id: board_id}, {title: title, last_edited: Date.now()}).then(board => {
             if(board.modifiedCount == 1){
                 return {
                     success: true,
@@ -141,7 +140,7 @@ async function EditBoard(board_id, title){
 
 async function AddMember(board_id, member_id){
     try{
-        Board.findOne({_id: board_id}).then(board => {
+        return Board.findOne({_id: board_id}).then(board => {
             if(board.owner == member_id){
                 return{
                     success: false,
@@ -180,7 +179,7 @@ async function AddMember(board_id, member_id){
 
 async function RemoveMember(board_id, member_id){
     try{
-        Board.findOne({_id: board_id}).then(board => {
+        return Board.findOne({_id: board_id}).then(board => {
             if(board.members.includes(member_id)){
                 const index = board.members.indexOf(member_id);
                 if(board.members.splice(index, 1).length == 0){
@@ -213,7 +212,7 @@ async function RemoveMember(board_id, member_id){
 
 async function ChangeOwner(board_id, owner_id, make_pre_owner_member = false){
     try{
-        Board.findOne({_id: board_id}).then(board => {
+        return Board.findOne({_id: board_id}).then(board => {
             
             if(make_pre_owner_member){
                 board.members.push(board.owner)
