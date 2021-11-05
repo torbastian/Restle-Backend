@@ -7,7 +7,7 @@ var CardSchema = new mongoose.Schema({
         ref: "BoardSchema",
         require: true
     },
-    created_date: {
+    create_date: {
         type: Date,
         default: Date.now
     },

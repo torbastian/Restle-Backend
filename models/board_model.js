@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 //Schemas
 var BoardSchema = new mongoose.Schema({
-    created_date: {
+    create_date: {
         type: Date,
         default: Date.now
     },
@@ -21,16 +21,16 @@ var BoardSchema = new mongoose.Schema({
     },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "UserSchema"
+        ref: "Users"
     },
     members: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "UserSchema"
+        ref: "Users"
     }],
 
     lists: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "ListSchema"
+        ref: "Lists"
     }]
 });
 

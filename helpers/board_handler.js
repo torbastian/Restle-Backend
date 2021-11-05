@@ -4,15 +4,16 @@ const User = require("../models/user_model")
 
 async function GetBoardAsOwner(board_owner){
     try{
-        const boards = await Board.find({ owner: board_owner })
+        console.log("hej. " + board_owner);
+        return await Board.find({ owner: board_owner })
         .sort({ 'last_edited': -1 })
         .populate({
             path: 'owner',
-            select: 'username created first_name last_name colour'
+            select: 'username create_date first_name last_name colour'
         })
         .populate({
             path: 'members',
-            select: 'username created first_name last_name colour'
+            select: 'username create_date first_name last_name colour'
         })
         .select('-lists').then(boards => {
             return {
@@ -20,8 +21,15 @@ async function GetBoardAsOwner(board_owner){
                 message: "vi fandt " + boards.length + " som du er ejer af",
                 object: boards
             }
+        }).catch(err => {
+            console.log("im fucked");
+            return{
+                success: false,
+                message: "noget gik galt da vi forsøgte at hente dine Boards. " + err
+            }
         });
     }catch(err){
+        console.log("im fucked");
         return{
             success: false,
             message: "noget gik galt da vi forsøgte at hente dine Boards. " + err
