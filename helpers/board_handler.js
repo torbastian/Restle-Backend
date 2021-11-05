@@ -1,5 +1,6 @@
 const Board = require("../models/board_model");
 const List = require("../models/list_model");
+const User = require("../models/user_model")
 
 async function GetBoardAsOwner(board_owner){
     try{
