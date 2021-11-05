@@ -55,14 +55,15 @@ async function GetBoardAsMember(member_id){
     }
 }
 
-async function CreateBoard(title, owner, members = [], lists = []){
+async function CreateBoard(title, owner, description = "", members = [], lists = []){
     const newBoard = new Board({
         create_date: Date.now(),
         last_edited: Date.now(),
         title: title,
         owner: owner,
         members: members,
-        lists: lists
+        lists: lists,
+        description: description
     });
 
     try{

@@ -14,6 +14,11 @@ var BoardSchema = new mongoose.Schema({
         type: String,
         require: true
     },
+    description: {
+        type: String,
+        require: false,
+        default: ""
+    },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "UserSchema"
