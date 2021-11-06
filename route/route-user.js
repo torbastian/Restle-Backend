@@ -4,7 +4,8 @@ const User = require('../models/user_model');
 const jwt = require('jsonwebtoken');
 const { reqToUser } = require('../helpers/req_converter');
 const { registerValidation, loginValidation } = require('../helpers/validation');
-const { signUserToken, newUser } = require('../helpers/user_helper');
+const { signUserToken, newUser, getUserInfo } = require('../helpers/user_helper');
+const { validateToken } = require('../helpers/token_handler');
 
 router.post('/register', async (req, res) => {
   const reqUser = reqToUser(req);
@@ -62,6 +63,16 @@ router.post('/login', async (req, res) => {
   catch {
     res.status(500).send();
   }
+});
+
+router.get('/', validateToken, async (req, res) => {
+  await User.findById(req.user._id).then((user, err) => {
+    if (!err) {
+      res.status(200).send(getUserInfo(user))
+    } else {
+      res.status(400).send({ message: 'User not found' });
+    }
+  });
 });
 
 //Simpel logout der sletter brugerens Json web token.
