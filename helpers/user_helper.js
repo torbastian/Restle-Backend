@@ -4,7 +4,7 @@ const { hash, encrypt } = require('./crypt');
 const { TokenHandler } = require('./token_handler');
 
 async function signUserToken(user, res) {
-  console.log("Test");
+
   try {
     const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
 

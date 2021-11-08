@@ -1,4 +1,5 @@
-const { GetBoardAsOwner, GetBoardAsMember, CreateBoard, GetBoard } = require("./board_handler");
+const { CreateBoard, GetBoard, GetBoardListAsOwner, GetBoardListAsMember, GetBoardList } = require("./board_handler");
+const Board = require("../models/board_model");
 
 class BoardManager {
   constructor() {
@@ -9,47 +10,42 @@ class BoardManager {
 
   async subscribeToBoardList(subscriber, userId) {
     try {
-      //Hvis brugeren ikke er abbonneret, opret et abbonnoment
-      if (!this.boardListSubscriptions[userId]) {
-        this.boardListSubscriptions[userId] = {
-          subscriber: subscriber
-        }
+      try {
+        const _subscriber = { ws: subscriber, userId, userId };
+
+        const ownedBoards = await GetBoardListAsOwner(userId);
+        const memberBoards = await GetBoardListAsMember(userId);
+
+        this.boardListSubscribe(ownedBoards.object, _subscriber);
+        this.boardListSubscribe(memberBoards.object, _subscriber);
+
+        this.sendBoardListToSubscriber(subscriber, ownedBoards.object, memberBoards.object);
+      } catch (err) {
+        console.log(err);
       }
 
-
-      /*
-      //Pseudo kode til en mere opdateringsvenlig websocket løsning
-      const boardLists = getBoardList();
-
-      foreach board in boardlist {
-        if (!boardListSubscriptions[boardId]) {
-          boardListSubscriptions[boardId] = {
-            subscribers: [subscriber]
-          }
-        } else {
-          boardListSubscriptions[boardId].subscribers.push(subscriber);
-        }
-      }
-
-      //Dette burde tillade et board på board listen, at opdatere via et event, 
-      //uden at skulle gå igennem alle brugere på et board, 
-      //hver gang det opdateres, og checke om brugeren er subscribed
-
-      //Cons
-      //Resultere i flere elementer i boardListSubscriptions, 1 per board, samnt x antal af brugere som er abboneret til boardet
-
-      //Pros
-      //Man behøver ikke at gå igennem hver bruger på et board hver gang det opdateres
-
-      boardListSubscriptions[boardId] = {
-        subscriber: subscriber
-      }
-
-      */
-      this.sendBoardList(userId);
       return true;
     } catch (error) {
       return false;
+    }
+  }
+
+  //Hvis brugeren ikke er abbonneret til en board liste, opret et abbonnoment
+  boardListSubscribe(boards, sub) {
+    for (let i = 0; i < boards.length; i++) {
+      const board = boards[i];
+
+      if (!this.boardListSubscriptions[board._id]) {
+        this.boardListSubscriptions[board._id] = {
+          subscribers: [sub]
+        }
+
+        continue;
+      }
+
+      if (!this.boardListSubscriptions[board._id].subscribers.includes(sub)) {
+        this.boardListSubscriptions[board._id].subscribers.push(sub);
+      }
     }
   }
 
@@ -81,13 +77,36 @@ class BoardManager {
     await CreateBoard(details.title, userId, details.description);
   }
 
-  //Send boards til bruger
-  async sendBoardList(userId) {
-    if (!this.boardListSubscriptions[userId]) return;
+  //Send et opdateret board til abonnerede brugers board lister
+  async sendBoardListUpdate(boardId) {
+    const subscriptions = this.boardListSubscriptions[boardId];
 
-    const owned = await GetBoardAsOwner(userId);
-    const memberOf = await GetBoardAsMember(userId);
+    if (!subscriptions) return;
 
+    const board = await GetBoardList(boardId).object;
+
+    subscriptions.forEach(sub => {
+      if (board.owner == sub.userId) {
+        const listUpdate = JSON.stringify({
+          response: 'BOARD_LIST_UPDATE',
+          time: Date.now(),
+          owned: board
+        })
+
+        sub.ws.send(listUpdate);
+      } else {
+        const listUpdate = JSON.stringify({
+          response: 'BOARD_LIST_UPDATE',
+          time: Date.now(),
+          memberOf: board
+        })
+
+        sub.ws.send(listUpdate);
+      }
+    });
+  }
+
+  async sendBoardListToSubscriber(subscriber, owned, memberOf) {
     const listPackage = JSON.stringify({
       response: 'BOARD_LIST_RESPONSE',
       time: Date.now(),
@@ -95,7 +114,7 @@ class BoardManager {
       memberOf: memberOf
     });
 
-    this.boardListSubscriptions[userId].subscriber.send(listPackage);
+    subscriber.send(listPackage);
   }
 
   //Send board til brugere
@@ -118,8 +137,6 @@ class BoardManager {
   }
 
   async unsubscribe(userId, subscriber) {
-    delete this.boardListSubscriptions[userId];
-
     //Gå igennem alle board subscriptions og fjern brugerens forbindelse
     for (var key in this.boardSubscriptions) {
       if (!this.boardSubscriptions.hasOwnProperty(key)) continue;
@@ -129,6 +146,20 @@ class BoardManager {
 
       if (index > -1) {
         this.boardSubscriptions[key].subscribers.splice(index, 1);
+      }
+    }
+
+    const _sub = { ws: subscriber, userId: userId };
+
+    //Gå igennem alle board list subscriptions og fjern brugerens forbindelse
+    for (var key in this.boardListSubscriptions) {
+      if (!this.boardListSubscriptions.hasOwnProperty(key)) continue;
+
+      const board = this.boardListSubscriptions[key];
+      const index = board.subscribers.indexOf(_sub);
+
+      if (index > -1) {
+        this.boardListSubscriptions[key].subscribers.splice(index, 1);
       }
     }
   }
