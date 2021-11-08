@@ -31,8 +31,8 @@ function startWebscoketServer(server) {
 
       //Udfør operationer baseret på forespørgelsen
       switch (request) {
-        case 'SUBSCRIBE':
-          //TODO subscribe til board side
+        case 'SUBSCRIBE_BOARD':
+          boardManager.subscribeToBoard(ws, userId, json.boardId);
           break;
         case 'SUBSCRIBE_BOARD_LIST':
           boardManager.subscribeToBoardList(ws, userId);
@@ -45,7 +45,7 @@ function startWebscoketServer(server) {
     });
 
     ws.on('close', () => {
-      boardManager.unsubscribe(userId);
+      boardManager.unsubscribe(userId, ws);
     });
   });
 
