@@ -20,7 +20,6 @@ function startWebscoketServer(server) {
   //Når en bruger forbindes til serveren
   wss.on('connection', (ws, req) => {
     //Verificer bruger token
-    VerifyUserToken(ws, req);
     const userId = VerifyUserToken(ws, req);
 
     //Foretage handlinger baseret på forespørgelsen der modtages

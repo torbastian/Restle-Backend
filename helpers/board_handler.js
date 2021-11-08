@@ -2,7 +2,7 @@ const Board = require("../models/board_model");
 const List = require("../models/list_model");
 const User = require("../models/user_model")
 
-async function GetBoardAsOwner(board_owner) {
+async function GetBoardListAsOwner(board_owner) {
     try {
         return await Board.find({ owner: board_owner })
             .sort({ 'last_edited': -1 })
@@ -28,7 +28,6 @@ async function GetBoardAsOwner(board_owner) {
                 }
             });
     } catch (err) {
-        console.log("im fucked");
         return {
             success: false,
             message: "noget gik galt da vi forsøgte at hente dine Boards. " + err
@@ -36,17 +35,17 @@ async function GetBoardAsOwner(board_owner) {
     }
 }
 
-async function GetBoardAsMember(member_id) {
+async function GetBoardListAsMember(member_id) {
     try {
         return await Board.find({ members: member_id })
             .sort({ 'last_edited': -1 })
             .populate({
                 path: 'owner',
-                select: 'username created first_name last_name colour'
+                select: 'username create_date first_name last_name colour'
             })
             .populate({
                 path: 'members',
-                select: 'username created first_name last_name colour'
+                select: 'username create_date first_name last_name colour'
             })
             .select('-lists').then(boards => {
                 return {
@@ -59,6 +58,32 @@ async function GetBoardAsMember(member_id) {
         return {
             success: false,
             message: "noget gik galt da vi forsøgte at hente dine Boards. " + err
+        }
+    }
+}
+
+async function GetBoardList(boardId) {
+    try {
+        return await Board.findById(boardId)
+            .populate({
+                path: 'owner',
+                select: 'username create_date first_name last_name colour'
+            })
+            .populate({
+                path: 'members',
+                select: 'username create_date first_name last_name colour'
+            })
+            .select('-lists').then(board => {
+                return {
+                    sucess: true,
+                    message: 'Board Fundet',
+                    object: board
+                }
+            });
+    } catch (err) {
+        return {
+            sucess: false,
+            message: 'Noget gik galt da vi forsøgte at finde boardet. ' + err
         }
     }
 }
@@ -351,6 +376,7 @@ exports.EditBoard = EditBoard;
 exports.AddMember = AddMember;
 exports.RemoveMember = RemoveMember;
 exports.ChangeOwner = ChangeOwner;
-exports.GetBoardAsMember = GetBoardAsMember;
-exports.GetBoardAsOwner = GetBoardAsOwner;
+exports.GetBoardListAsMember = GetBoardListAsMember;
+exports.GetBoardListAsOwner = GetBoardListAsOwner;
 exports.GetBoard = GetBoard;
+exports.GetBoardList = GetBoardList;
