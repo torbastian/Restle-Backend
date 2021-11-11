@@ -1,11 +1,12 @@
 const { CreateBoard, GetBoard, GetBoardListAsOwner, GetBoardListAsMember, GetBoardList } = require("./board_handler");
 const Board = require("../models/board_model");
+const { CreateList } = require("./list_handler");
+const { CreateCard } = require("./card_handler");
 
 class BoardManager {
   constructor() {
     this.boardListSubscriptions = {};
     this.boardSubscriptions = {};
-    //Hvis en user er i board list subscription, send hver board opdatering til user
   }
 
   async subscribeToBoardList(subscriber, userId) {
@@ -52,7 +53,7 @@ class BoardManager {
   async subscribeToBoard(subscriber, userId, boardId) {
     console.log(boardId);
     try {
-      const board = await GetBoard(boardId);
+      //const board = await GetBoard(boardId);
       //TODO Check om bruger er medlem, ejer eller admin
 
       //Hvis boardet ikke findes under boardSubscriptions, tilføj det
@@ -75,6 +76,14 @@ class BoardManager {
 
   async createNewBoard(userId, details) {
     await CreateBoard(details.title, userId, details.description);
+  }
+
+  async createNewList(userId, boardId, details) {
+    await CreateList(boardId, details.title);
+  }
+
+  async createNewCard(userId, listId, details) {
+    await CreateCard(listId, details.title, details.description);
   }
 
   //Send et opdateret board til abonnerede brugers board lister
@@ -124,7 +133,13 @@ class BoardManager {
 
         //Send et board til en specefik bruger, eller alle brugere ud fra om subscriber er null eller ej
         this.boardSubscriptions[boardId].subscribers.forEach(sub => {
-          if ((subscriber && sub === subscriber) || !subscriber) {
+          if (!result.success) {
+            sub.send(JSON.stringify({
+              response: 'BOARD_RESPONSE_ERROR',
+              time: Date.now(),
+              result: result
+            }));
+          } else if ((subscriber && sub === subscriber) || !subscriber) {
             sub.send(JSON.stringify({
               response: 'BOARD_RESPONSE',
               time: Date.now(),
