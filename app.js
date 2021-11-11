@@ -60,7 +60,7 @@ async function TEST(){
 }
 
 
-TEST();
+//TEST();
 //TEST END-------------------------------------------------------
 
 //Importer routes

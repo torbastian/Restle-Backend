@@ -61,7 +61,7 @@ async function GetBoardAsMember(member_id){
     }
 }
 
-async function CreateBoard(user_id, title, owner, description){
+async function CreateBoard(user_id, title, owner, description = ""){
     if(title.length > 40){
         return{
             success: false,
