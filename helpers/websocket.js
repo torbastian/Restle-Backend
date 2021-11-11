@@ -43,7 +43,7 @@ function startWebscoketServer(server) {
           boardManager.createNewList(userId, json.boardId, json.details);
           break;
         case 'NEW_CARD':
-          boardManager.createNewCard(userId, json.listId, json.details);
+          boardManager.createNewCard(userId, json.boardId, json.listId, json.details);
           break;
         default:
           break;

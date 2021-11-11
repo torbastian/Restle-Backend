@@ -75,15 +75,20 @@ class BoardManager {
   }
 
   async createNewBoard(userId, details) {
-    await CreateBoard(details.title, userId, details.description);
+    await CreateBoard(userId, details.title, userId, details.description);
   }
 
   async createNewList(userId, boardId, details) {
-    await CreateList(boardId, details.title);
+    await CreateList(userId, boardId, details.title, (result) => {
+      console.log(result);
+    });
   }
 
-  async createNewCard(userId, listId, details) {
-    await CreateCard(listId, details.title, details.description);
+  async createNewCard(userId, boardId, listId, details) {
+    console.log(userId);
+    await CreateCard(userId, boardId, listId, details.title, details.description, (result) => {
+      console.log(result);
+    });
   }
 
   //Send et opdateret board til abonnerede brugers board lister

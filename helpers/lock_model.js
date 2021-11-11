@@ -1,14 +1,16 @@
-function LockModel(ModelToLock, Action, Callback){
-    ModelToLock.lock(2000, async function(err, model){
-        if(!model){
+function LockModel(ModelToLock, Action, Callback) {
+    ModelToLock.lock(2000, async function (err, model) {
+        console.log("LOCK MODEL ERROR: " + err);
+        console.log("LOCK MODEL MODEL: " + model);
+        if (!model) {
             return;
         }
-        Action();
+        await Action();
     });
-    list.release(function(err, model){
-        if(list){
+    ModelToLock.release(function (err, model) {
+        if (ModelToLock) {
             Callback(undefined, model);
-        }else{
+        } else {
             Callback(err, undefined);
         }
     });
