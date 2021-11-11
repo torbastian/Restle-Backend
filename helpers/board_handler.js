@@ -5,30 +5,29 @@ const User = require("../models/user_model")
 async function GetBoardListAsOwner(board_owner) {
     try {
         return await Board.find({ owner: board_owner })
-            .sort({ 'last_edited': -1 })
-            .populate({
-                path: 'owner',
-                select: 'username create_date first_name last_name colour'
-            })
-            .populate({
-                path: 'members',
-                select: 'username create_date first_name last_name colour'
-            })
-            .select('-lists').then(boards => {
-                return {
-                    success: true,
-                    message: "vi fandt " + boards.length + " som du er ejer af",
-                    object: boards
-                }
-            }).catch(err => {
-                console.log("im fucked");
-                return {
-                    success: false,
-                    message: "noget gik galt da vi forsøgte at hente dine Boards. " + err
-                }
-            });
-    } catch (err) {
-        return {
+        .sort({ 'last_edited': -1 })
+        .populate({
+            path: 'owner',
+            select: 'username create_date first_name last_name colour'
+        })
+        .populate({
+            path: 'members',
+            select: 'username create_date first_name last_name colour'
+        })
+        .select('-lists').then(boards => {
+            return {
+                success: true,
+                message: "vi fandt " + boards.length + " som du er ejer af",
+                object: boards
+            }
+        }).catch(err => {
+            return{
+                success: false,
+                message: "noget gik galt da vi forsøgte at hente dine Boards. " + err
+            }
+        });
+    }catch(err){
+        return{
             success: false,
             message: "noget gik galt da vi forsøgte at hente dine Boards. " + err
         }
@@ -133,242 +132,401 @@ async function GetBoard(boardId) {
     }
 }
 
-async function CreateBoard(title, owner, description = "", members = [], lists = []) {
+async function CreateBoard(user_id, title, owner, description = ""){
+    if(title.length > 40){
+        return{
+            success: false,
+            message: "title er for lang, max 40 charatere"
+        }
+    }
+    if(description.length > 1024){
+        return{
+            success: false,
+            message: "description er for lang, max 1024 charatere"
+        }
+    }
+    
     const newBoard = new Board({
         create_date: Date.now(),
         last_edited: Date.now(),
         title: title,
         owner: owner,
-        members: members,
-        lists: lists,
+        members: [],
+        lists: [],
         description: description
     });
 
-    try {
-        return await newBoard.save().then(board => {
-            return {
-                success: true,
-                message: "board blev gemt",
-                object: newBoard
-            }
-        }).catch(err => {
-            return {
-                success: false,
-                message: "board blev ikke gemt"
-            }
-        });
-    } catch (err) {
-        return {
+    try{
+        newBoard.save();
+        return{
+            success: true,
+            message: "Board blev gemt.",
+            object: newBoard
+        }
+    }catch(err){
+        return{
             success: false,
             message: "board blev ikke gemt. " + err
-        }
+        };
     }
 }
 
-async function DeleteBoard(board_id, user_id) {
-    try {
-        return await Board.findOne({ _id: board_id }).then(board => {
-            if (board.owner != user_id) {
-                return {
-                    success: false,
-                    message: "board kan kun slettes af board ejer."
-                }
-            }
-        })
-
-        await Board.deleteOne({ _id: board_id });
-        return {
-            success: true,
-            message: "board blev slettet"
+async function DeleteBoard(board_id, user_id, callback){
+    try{
+        if(!OwnerAdminValidator(user_id, board_id)){
+            callback({
+                success: false,
+                message: "kun board ejer og admins kan slette boardet"
+            });
         }
-    } catch (err) {
-        return {
+
+        board = await Board.findOne({_id: board_id});
+        result = Lock.LockModel(board, 
+            function(){
+                board.deleteOne();
+                return true;
+            },
+            function(err, result){
+                if(board){
+                    callback({
+                        success: true,
+                        message: "Board title blev slettet ",
+                        object: board
+                    })
+                }                
+            }
+        );
+        if(result){
+            callback(result);
+        }else{
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            await sleep(1000);
+        }
+    }catch(err){
+        callback({
             success: false,
             message: "board blev ikke slettet. " + err
-        }
+        });
     }
 }
 
-async function EditBoard(board_id, title) {
-    try {
-        return Board.updateOne({ _id: board_id }, { title: title, last_edited: Date.now() }).then(board => {
-            if (board.modifiedCount == 1) {
-                return {
-                    success: true,
-                    message: "board blev updated",
-                    object: board
-                }
+async function EditBoard(user_id, board_id, title, callback){
+    try{
+        if(!OwnerAdminValidator(user_id, board_id)){
+            callback({
+                success: false,
+                message: "kun board ejer og admins kan redigere board title"
+            });
+        }
+
+        board = await Board.findOne({_id: board_id});
+        result = Lock.LockModel(board, 
+            function(){
+                board.title = title;
+                board.save();
+                return true;
+            },
+            function(err, result){
+                if(board){
+                    callback({
+                        success: true,
+                        message: "Board title blev ændret til " + board.title,
+                        object: board
+                    })
+                }                
             }
-        });
-    } catch (err) {
-        return {
+        );
+        if(result){
+            callback(result);
+        }else{
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            await sleep(1000);
+        }
+    }catch(err){
+        callback({
             success: false,
             message: "board blev ikke updated"
-        };
+        });
     }
 }
 
-async function AddMember(board_id, member_id) {
-    try {
-        return Board.findOne({ _id: board_id }).then(board => {
-            if (board.owner == member_id) {
-                return {
-                    success: false,
-                    message: "board ejer kan ikke være medlem"
+async function AddMember(user_id, board_id, member_id, callback){
+    try{
+        if(!OwnerAdminValidator(user_id, board_id)){
+            callback({
+                success: false,
+                message: "kun board ejer og admins kan tilføje board medlemmer"
+            });
+        }
+
+        board = await Board.findOne({_id: board_id});
+        result = Lock.LockModel(board, 
+            function(){
+                if(!board.members.includes(member_id)){
+                    board.members.push(member_id);
+                    board.save();
+                    return true;
                 }
-            }
-            if (board.members.includes(member_id)) {
-                return {
-                    success: false,
-                    message: "bruger er allerede medlem af board"
-                };
-            }
-            try {
-                board.members.push(member_id);
-                board.save().then(board => {
-                    return {
+            },
+            function(err, result){
+                if(board){
+                    callback({
                         success: true,
-                        message: "bruger er blevet medlem af board",
+                        message: "Board medlem blev tilføjet",
                         object: board
-                    };
-                });
-            } catch (err) {
-                return {
-                    success: false,
-                    message: "noget gik galt da vi forsøgte at tilføje medlem"
-                };
+                    })
+                }                
             }
-        });
-    } catch (err) {
-        return {
+        );
+        if(result){
+            callback(result);
+        }else{
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            await sleep(1000);
+        }
+    }catch(err){
+        callback({
             success: false,
             message: "bruger blev ikke medlem. " + err
-        };
+        });
     }
 }
 
-async function RemoveMember(board_id, member_id) {
-    try {
-        return Board.findOne({ _id: board_id }).then(board => {
-            if (board.members.includes(member_id)) {
-                const index = board.members.indexOf(member_id);
-                if (board.members.splice(index, 1).length == 0) {
-                    return {
-                        success: false,
-                        message: "medlem blev ikke fjernet"
-                    };
+async function RemoveMember(user_id, board_id, member_id, callback){
+    try{
+        if(!OwnerAdminValidator(user_id, board_id)){
+            callback({
+                success: false,
+                message: "kun board ejer og admins kan fjerne board medlemmer"
+            });
+        }
+
+        board = await Board.findOne({_id: board_id});
+        result = Lock.LockModel(board, 
+            function(){
+                if(board.members.includes(member_id)){
+                    const index = board.members.indexOf(member_id);
+                    board.members.splice(index, 1);
+                    board.save();
+                    return true;
                 }
-                board.save().then(board => {
-                    return {
+            },
+            function(err, result){
+                if(board){
+                    callback({
                         success: true,
-                        message: "bruger er blevet fjernet som medlem",
+                        message: "Board medlem blev fjernet",
                         object: board
-                    }
-                }).catch(err => {
-                    return {
-                        success: false,
-                        message: "noget gik galt da vi forsøgte at fjerne medlem. " + err
-                    }
-                });
+                    })
+                }                
             }
-        });
-    } catch (err) {
-        return {
+        );
+        if(result){
+            callback(result);
+        }else{
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            await sleep(1000);
+        }
+    }catch(err){
+        callback({
             success: false,
             message: "medlem blev ikke fjernet. " + err
-        };
+        });
     }
 }
 
-async function ChangeOwner(board_id, owner_id, make_pre_owner_member = false) {
-    try {
-        return Board.findOne({ _id: board_id }).then(board => {
+async function ChangeOwner(user_id, board_id, owner_id, callback){
+    try{
+        if(!OwnerAdminValidator(user_id, board_id)){
+            callback({
+                success: false,
+                message: "kun board ejer og admins kan ændre board ejer"
+            });
+        }
 
-            if (make_pre_owner_member) {
-                board.members.push(board.owner)
+        board = await Board.findOne({_id: board_id});
+        result = Lock.LockModel(board, 
+            function(){
+                board.owner = owner_id;
+                board.save();
+                return true;
+            },
+            function(err, result){
+                if(board){
+                    callback({
+                        success: true,
+                        message: board.owner + " er den nye ejer af boardet",
+                        object: board
+                    })
+                }                
             }
-            board.owner = owner_id;
-        });
-    } catch (err) {
-        return {
+        );
+        if(result){
+            callback(result);
+        }else{
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            await sleep(1000);
+        }
+    }catch(err){
+        callback({
             success: false,
             message: "Ejerskab blev ikke overført. " + err
-        }
-    }
-}
-/*
-async function AddBoardList(board_id, member_id){
-    try{
-        Board.findOne({_id: board_id}).then(board => {
-            if(board.members.includes(member_id)){
-                return {
-                    success: false,
-                    message: "bruger er allerede medlem af board"
-                };
-            }else{
-                try{
-                    board.members.push(member_id);
-                    await board.save();
-                    return{
-                        success: true,
-                        message: "bruger er blevet medlem af board",
-                        object: board
-                    };
-                }catch(err){
-                    return{
-                        success: false,
-                        message: "noget gik galt da vi forsøgte at tilføje medlem"
-                    };
-                }
-            }   
         });
-    }catch(err){
-        return{
-            success: false,
-            message: "bruger blev ikke medlem. " + err
-        };
     }
 }
 
-async function RemoveList(board_id, member_id){
+async function AddBoardList(user_id, board_id, list_id, callback){
     try{
-        Board.findOne({_id: board_id}).then(board => {
-            if(board.owner == member_id){
-                return {
-                    success: false,
-                    message: "kan ikke fjerne board owner fra medlems liste"
-                };
-            }else if(board.members.includes(member_id)){
-                const index = board.members.indexOf(member_id);
-                if(board.members.splice(index, 1).length == 0){
-                    return{
-                        success: false,
-                        message: "medlem blev ikke fjernet"
-                    };
-                }else{
-                    try{
-                        await board.save();
-                        return{
-                            success: true,
-                            message: "bruger er blevet fjernet som medlem",
-                            object: board
-                        }
-                    }catch(err){
-                        return{
-                            success: false,
-                            message: "noget gik galt da vi forsøgte at fjerne medlem"
-                        }
-                    }
+        if(!OwnerAdminValidator(user_id, board_id)){
+            callback({
+                success: false,
+                message: "kun board ejer og admins kan tilføje liste til board"
+            });
+        }
+
+        board = await Board.findOne({_id: board_id});
+        list = await List.findOne({_id: list_id});
+        result = Lock.LockModel(board, 
+            function(){
+                if(!board.lists.includes(list_id)){
+                    board.lists.push(list_id);
+                    board.save();
+                    return true;
                 }
+            },
+            function(err, result){
+                if(list){
+                    result2 = Lock.LockModel(list, 
+                    function(){
+                        list.board = board_id;
+                        list.save();
+                        return true;
+                        
+                    },
+                    function(err, result2){
+                        if(board){
+                            callback({
+                                success: true,
+                                message: "Liste er blevet tilføjet til boardet.",
+                                object: board
+                            });
+                        }                
+                    });
+                }                
             }
-        });
+        );
+        if(result){
+            callback(result);
+        }else{
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            await sleep(1000);
+        }
     }catch(err){
-        return{
+        callback({
             success: false,
-            message: "medlem blev ikke fjernet. " + err
-        };
+            message: "Noget gik galt da vi forsøgte at tilføje listen. " + err
+        });
     }
-}*/
+}
+
+async function RemoveList(user_id, board_id, list_id, callback){
+    try{
+        if(!OwnerAdminValidator(user_id, board_id)){
+            callback({
+                success: false,
+                message: "kun board ejer og admins kan fjerne liste fra board"
+            });
+            return;
+        }
+
+        board = await Board.findOne({_id: board_id});
+        list = await List.findOne({_id: list_id});
+        result = Lock.LockModel(board, 
+            function(){
+                if(board.lists.includes(list_id)){
+                    const index = board.lists.indexOf(list_id);
+                    board.lists.splice(index, 1);
+                    board.save();
+                    return true;
+                }
+            },
+            function(err, result){
+                if(list){
+                    result2 = Lock.LockModel(list, 
+                    function(){
+                        list.board = undefined;
+                        list.save();
+                        return true;
+                        
+                    },
+                    function(err, result2){
+                        if(board){
+                            callback({
+                                success: true,
+                                message: "Liste er blevet fjernet fra boardet",
+                                object: board
+                            });
+                        }                
+                    });
+                }                
+            }
+        );
+        if(result){
+            callback(result);
+        }else{
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            await sleep(1000);
+        }
+    }catch(err){
+        callback({
+            success: false,
+            message: "noget gik galt da vi forsøgte at fjerne listen. " + err
+        });
+    }
+}
+
+function OwnerAdminValidator(user_id, board_id){
+    try{
+        const board = Board.findOne({_id: board_id});
+        const user = User.findOne({_id: user_id});
+    
+        if(user.isAdmin || user_id == board.owner){
+            return true;
+        }else{
+            return false;
+        }
+    }catch(err){
+        throw new Error("user eller admin fejlede");
+    }
+}
+
+function AdminValidator(user_id){
+    try{
+        const user = User.findOne({_id: user_id});
+    
+        if(user.isAdmin){
+            return true;
+        }else{
+            return false;
+        }
+    }catch(err){
+        throw new Error("owner eller admin validator fejlede");
+    }
+}
 
 exports.CreateBoard = CreateBoard;
 exports.DeleteBoard = DeleteBoard;
@@ -376,7 +534,7 @@ exports.EditBoard = EditBoard;
 exports.AddMember = AddMember;
 exports.RemoveMember = RemoveMember;
 exports.ChangeOwner = ChangeOwner;
-exports.GetBoardListAsMember = GetBoardListAsMember;
-exports.GetBoardListAsOwner = GetBoardListAsOwner;
-exports.GetBoard = GetBoard;
-exports.GetBoardList = GetBoardList;
+exports.GetBoardAsMember = GetBoardAsMember;
+exports.GetBoardAsOwner = GetBoardAsOwner;
+exports.AddBoardList = AddBoardList;
+exports.RemoveList = RemoveList;
