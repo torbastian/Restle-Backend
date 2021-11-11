@@ -87,6 +87,10 @@ class BoardManager {
   async createNewCard(userId, boardId, listId, details) {
     console.log(userId);
     await CreateCard(userId, boardId, listId, details.title, details.description, (result) => {
+      if(!result.success && result.status == "DB"){
+        console.log(result.message);
+        this.createNewCard(userId, boardId, listId, details);
+      }
       console.log(result);
     });
   }

@@ -3,6 +3,11 @@ function LockModel(ModelToLock, Action, Callback) {
         console.log("LOCK MODEL ERROR: " + err);
         console.log("LOCK MODEL MODEL: " + model);
         if (!model) {
+            Callback({
+                success: false,
+                status: "DB",
+                message: "Model er låst. prøv igen sener"
+            }, null);
             return;
         }
         await Action();

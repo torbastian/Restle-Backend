@@ -56,20 +56,17 @@ async function CreateCard(user_id, board_id, list_id, title, description, callba
         title: title,
         description: description,
         members: []
-    }).save();
+    });
 
     try {
         list = await List.findOne({ _id: list_id })
-        console.log("!!! LIST" + list);
-        console.log("!!! NEW CARD" + newCard)
-        result = Lock.LockModel(list,
+        Lock.LockModel(list,
             async function () {
-                console.log("FUNCTION LIST: " + list);
-                if (list) {
-
+                if(list){
                     await list.cards.push(newCard._id);
                     console.log("cards pushed");
                     await list.save();
+                    await newCard.save();
                     console.log("list saved");
                     return true;
                 } else {
@@ -77,11 +74,10 @@ async function CreateCard(user_id, board_id, list_id, title, description, callba
                 }
             },
             function (err, result) {
-                console.log("FUNCTION ERROR: " + err);
-                console.log("FUNCTION RESULT: " + result);
-                console.log("newCard = " + newCard);
+                if(err){
+                    callback(err);
+                }    
                 if (newCard) {
-                    console.log("calling callback");
                     callback({
                         success: true,
                         message: "Kort er blevet gemt",
@@ -89,18 +85,6 @@ async function CreateCard(user_id, board_id, list_id, title, description, callba
                     });
                 }
             });
-
-        // console.log(newCard);
-
-        console.log("!!!!!! RESULT: " + result);
-        // if (result) {
-        //     callback(result);
-        // } else {
-        //     function sleep(ms) {
-        //         return new Promise(resolve => setTimeout(resolve, ms));
-        //     }
-        //     await sleep(2000);
-        // }
     } catch (err) {
         callback({
             success: false,
@@ -110,7 +94,7 @@ async function CreateCard(user_id, board_id, list_id, title, description, callba
 }
 
 async function DeleteCard(user_id, board_id, card_id, callback) {
-    if (!MemberValidator(user_id, board_id)) {
+    if(!MemberValidator(user_id, board_id)){
         callback({
             success: false,
             message: "kun admins eller board ejer kan fjerne kort fra listen"
@@ -119,14 +103,17 @@ async function DeleteCard(user_id, board_id, card_id, callback) {
     }
     try {
         card = await Card.findOne({ _id: card_id });
-
-        result = Lock.LockModel(card,
+        Lock.LockModel(card,
             function () {
                 card.deleteOne();
                 return true;
             },
-            function (err, result) {
-                if (card) {
+            function(err, result){
+                if(err){
+                    callback(err);
+                    return;
+                }
+                if(card){
                     callback({
                         success: true,
                         message: "Kort er blevet slettet",
@@ -134,16 +121,7 @@ async function DeleteCard(user_id, board_id, card_id, callback) {
                     });
                 }
             });
-
-        if (result) {
-            callback(result);
-        } else {
-            function sleep(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
-            await sleep(1000);
-        }
-    } catch (err) {
+    }catch(err){
         callback({
             success: false,
             message: "Korted blev ikke slettet. " + err
@@ -152,36 +130,39 @@ async function DeleteCard(user_id, board_id, card_id, callback) {
 }
 
 async function EditDescription(user_id, board_id, card_id, description, callback) {
-    if (!MemberValidator(user_id, board_id)) {
+    if(!MemberValidator(user_id, board_id)){
         callback({
             success: false,
             message: "kun admins eller board ejer kan fjerne kort fra listen"
         });
         return;
     }
-    card = await Card.findOne({ _id: card_id });
-    result = Lock.LockModel(card,
-        function () {
-            card.description = description;
-            card.save();
-        },
-        function (err, result) {
-            if (card) {
-                callback({
-                    success: true,
-                    message: "Kort beskrivelse er blevet gemt",
-                    object: card
-                });
+    try{
+        card = await Card.findOne({ _id: card_id });
+        Lock.LockModel(card,
+            function () {
+                card.description = description;
+                card.save();
+            },
+            function (err, result) {
+                if(err){
+                    callback(err);
+                    return;
+                }
+                if(card){
+                    callback({
+                        success: true,
+                        message: "Kort beskrivelse er blevet gemt",
+                        object: card
+                    });
+                }
             }
-        }
-    );
-    if (result) {
-        callback(result);
-    } else {
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-        await sleep(1000);
+        );
+    }catch(err){
+        callback({
+            success: false,
+            message: "Kort beskrivelse blev ikke gemt. " + err
+        });
     }
 }
 
@@ -194,33 +175,27 @@ async function AddMember(user_id, board_id, card_id, member_id, callback) {
         return;
     }
     card = await Card.findOne({ _id: card_id });
-    result = Lock.LockModel(card,
-        function () {
-            if (!card.members.includes(member_id)) {
-                card.members.push(member_id);
-                card.save();
-                return true;
-            }
-        },
-        function (err, result) {
-            if (result) {
-                console.log("RETURNING ITEM: dasfsdf" + result);
-                callback({
-                    success: true,
-                    message: "Kort er blevet gemt",
-                    object: result
-                });
-            }
+    Lock.LockModel(card,
+    function () {
+        if (!card.members.includes(member_id)) {
+            card.members.push(member_id);
+            card.save();
+            return true;
         }
-    );
-    if (result) {
-        callback(result);
-    } else {
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
+    },
+    function (err, result) {
+        if(err){
+            callback(err);
+            return;
         }
-        await sleep(1000);
-    }
+        if(result){
+            callback({
+                success: true,
+                message: "Kort er blevet gemt",
+                object: result
+            });
+        }
+    });
 }
 
 async function RemoveMember(user_id, board_id, card_id, member_id, callback) {
@@ -231,35 +206,37 @@ async function RemoveMember(user_id, board_id, card_id, member_id, callback) {
         });
         return;
     }
-    card = await Card.findOne({ _id: card_id });
-    console.log("CARD! " + card);
-    result = Lock.LockModel(card,
+    try{
+        card = await Card.findOne({ _id: card_id });
+        console.log("CARD! " + card);
+        result = Lock.LockModel(card,
         function () {
-            if (card.members.includes(member_id)) {
-                const index = card.members.indexOf(member_id);
-                card.members.splice(index, 1);
-                card.save();
-                return true;
+            if(card.members.includes(member_id)) {
+                    const index = card.members.indexOf(member_id);
+                    card.members.splice(index, 1);
+                    card.save();
+                    return true;
+                }
+            },
+            function (err, result) {
+                if(err){
+                    callback(err);
+                }
+                if (card) {
+                    callback({
+                        success: true,
+                        message: "Kort medlem er blevet fjernet",
+                        object: card
+                    });
+                }
             }
-        },
-        function (err, result) {
-            if (card) {
-                callback({
-                    success: true,
-                    message: "Kort er blevet gemt",
-                    object: card
-                });
-            }
-        }
-    );
-    if (result) {
-        callback(result);
-    } else {
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-        await sleep(1000);
-    }
+        );
+    }catch(err){
+        callback({
+            success:false,
+            message: "noget gik galt da vi forsøgte at fjerne medlem fra kort. " + err 
+        });
+    }   
 }
 
 exports.CreateCard = CreateCard;
