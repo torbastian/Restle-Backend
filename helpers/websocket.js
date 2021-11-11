@@ -37,7 +37,14 @@ function startWebscoketServer(server) {
           boardManager.subscribeToBoardList(ws, userId);
           break;
         case 'NEW_BOARD':
-          boardManager.createNewBoard(userId, json.details)
+          boardManager.createNewBoard(userId, json.details);
+          break;
+        case 'NEW_LIST':
+          boardManager.createNewList(userId, json.boardId, json.details);
+          break;
+        case 'NEW_CARD':
+          boardManager.createNewCard(userId, json.listId, json.details);
+          break;
         default:
           break;
       }
