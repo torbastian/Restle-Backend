@@ -1,6 +1,7 @@
 const Board = require("../models/board_model");
 const List = require("../models/list_model");
 const User = require("../models/user_model");
+const ListHandler = require("../helpers/list_handler");
 const Lock = require("./lock_model");
 const { OwnerAdminValidator } = require("./Permission_validator");
 
@@ -185,29 +186,39 @@ async function DeleteBoard(board_id, user_id, callback) {
         }
 
         board = await Board.findOne({ _id: board_id });
-        result = Lock.LockModel(board,
-            function () {
+        Lock.LockModel(board,
+            async function () {
+                lists = List.find({
+                    board: board._id
+                });
+                lists.array.forEach(element => {
+                    Lock.LockModel(element, function(){
+                        ListHandler.DeleteList(element._id);
+                        return true;
+                    },
+                    function(err, result){
+                        if(err){
+                            callback(err);
+                        }
+                    });
+                });
                 board.deleteOne();
                 return true;
             },
             function (err, result) {
+                if(err){
+                    callback(err);
+                    return;
+                }
                 if (board) {
                     callback({
                         success: true,
-                        message: "Board title blev slettet ",
+                        message: "Board " + board.title + " blev slettet ",
                         object: board
-                    })
+                    });
                 }
             }
         );
-        if (result) {
-            callback(result);
-        } else {
-            function sleep(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
-            await sleep(1000);
-        }
     } catch (err) {
         callback({
             success: false,
@@ -227,7 +238,7 @@ async function EditBoard(user_id, board_id, title, description, callback) {
         }
 
         board = await Board.findOne({ _id: board_id });
-        result = Lock.LockModel(board,
+        Lock.LockModel(board,
             function () {
                 board.title = title;
                 board.description = description;
@@ -244,14 +255,6 @@ async function EditBoard(user_id, board_id, title, description, callback) {
                 }
             }
         );
-        if (result) {
-            callback(result);
-        } else {
-            function sleep(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
-            await sleep(1000);
-        }
     } catch (err) {
         callback({
             success: false,
@@ -271,7 +274,7 @@ async function AddMember(user_id, board_id, member_id, callback) {
         }
 
         board = await Board.findOne({ _id: board_id });
-        result = Lock.LockModel(board,
+        Lock.LockModel(board,
             function () {
                 if (!board.members.includes(member_id)) {
                     board.members.push(member_id);
@@ -289,14 +292,6 @@ async function AddMember(user_id, board_id, member_id, callback) {
                 }
             }
         );
-        if (result) {
-            callback(result);
-        } else {
-            function sleep(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
-            await sleep(1000);
-        }
     } catch (err) {
         callback({
             success: false,
@@ -316,9 +311,19 @@ async function RemoveMember(user_id, board_id, member_id, callback) {
         }
 
         board = await Board.findOne({ _id: board_id });
-        result = Lock.LockModel(board,
+            Lock.LockModel(board,
             function () {
                 if (board.members.includes(member_id)) {
+                    lists = List.find({
+                        board: board._id
+                    });
+
+                    if(lists){
+                        lists.forEach(element => {
+                            ListHandler.DeleteList(element._id);
+                        });
+                    }
+
                     const index = board.members.indexOf(member_id);
                     board.members.splice(index, 1);
                     board.save();
@@ -335,14 +340,6 @@ async function RemoveMember(user_id, board_id, member_id, callback) {
                 }
             }
         );
-        if (result) {
-            callback(result);
-        } else {
-            function sleep(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
-            await sleep(1000);
-        }
     } catch (err) {
         callback({
             success: false,
@@ -406,7 +403,7 @@ async function AddBoardList(user_id, board_id, list_id, callback) {
 
         board = await Board.findOne({ _id: board_id });
         list = await List.findOne({ _id: list_id });
-        result = Lock.LockModel(board,
+        Lock.LockModel(board,
             function () {
                 if (!board.lists.includes(list_id)) {
                     board.lists.push(list_id);
@@ -415,6 +412,9 @@ async function AddBoardList(user_id, board_id, list_id, callback) {
                 }
             },
             function (err, result) {
+                if(err){
+                    callback(err);
+                }
                 if (list) {
                     result2 = Lock.LockModel(list,
                         function () {
@@ -424,25 +424,22 @@ async function AddBoardList(user_id, board_id, list_id, callback) {
 
                         },
                         function (err, result2) {
-                            if (board) {
+                            if(err){
+                                callback(err);
+                                return;
+                            }
+                            if(board){
                                 callback({
                                     success: true,
                                     message: "Liste er blevet tilføjet til boardet.",
                                     object: board
                                 });
                             }
-                        });
+                        }
+                    );
                 }
             }
         );
-        if (result) {
-            callback(result);
-        } else {
-            function sleep(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
-            await sleep(1000);
-        }
     } catch (err) {
         callback({
             success: false,
@@ -464,7 +461,7 @@ async function RemoveList(user_id, board_id, list_id, callback) {
 
         board = await Board.findOne({ _id: board_id });
         list = await List.findOne({ _id: list_id });
-        result = Lock.LockModel(board,
+        Lock.LockModel(board,
             function () {
                 if (board.lists.includes(list_id)) {
                     const index = board.lists.indexOf(list_id);
@@ -494,14 +491,6 @@ async function RemoveList(user_id, board_id, list_id, callback) {
                 }
             }
         );
-        if (result) {
-            callback(result);
-        } else {
-            function sleep(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
-            await sleep(1000);
-        }
     } catch (err) {
         callback({
             success: false,

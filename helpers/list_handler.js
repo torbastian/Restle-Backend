@@ -1,4 +1,5 @@
 const Card = require("../models/card_model");
+const CardHandler = require("../helpers/card_handler");
 const List = require("../models/list_model");
 const Board = require('../models/board_model');
 const Lock = require('../helpers/lock_model');
@@ -105,7 +106,14 @@ async function DeleteList(user_id, board_id, list_id, callback) {
         Lock.LockModel(list,
             function () {
                 Lock.LockModel(board,
-                    function () {
+                    async function () {
+
+                        cards = Card.find({list: list._id});
+
+                        cards.array.forEach(element => {
+                            CardHandler.DeleteCard(element._id);
+                        });
+
                         const index = board.lists.indexOf(list._id);
                         board.lists.splice(index, 1);
                         board.save();

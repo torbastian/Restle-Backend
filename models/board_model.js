@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const List = require("../models/list_model");
 const Card = require("../models/card_model");
+const Lock =require("../helpers/lock_model");
 const lockRelease = require('mongoose-lock-release');
 const mediator = require('../helpers/mediator');
 
@@ -44,15 +45,7 @@ BoardSchema.plugin(lockRelease, 'Boards');
 //Pre
 
 BoardSchema.pre('save', { document: true }, async function () {
-    this.last_edited = Date.now();
-});
-
-BoardSchema.pre('deleteOne', { document: true }, async function () {
-    this.lists.array.forEach(list => {
-        mongoose.model('Lists').findOne({ _id: list }).then(list => {
-            list.deleteOne({ _id: list });
-        });
-    });
+    this.last_edited = Date.now();    
 });
 
 //Post
