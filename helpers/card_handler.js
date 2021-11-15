@@ -28,7 +28,8 @@ async function GetCards(board_id) {
 }
 
 async function CreateCard(user_id, board_id, list_id, title, description, callback) {
-    if (!MemberValidator(user_id, board_id)) {
+    const valid = await MemberValidator(user_id, board_id);
+    if (!valid) {
         callback({
             success: false,
             message: "kun admins eller board ejer kan fjerne kort fra listen"
@@ -62,7 +63,7 @@ async function CreateCard(user_id, board_id, list_id, title, description, callba
         list = await List.findOne({ _id: list_id })
         Lock.LockModel(list,
             async function () {
-                if(list){
+                if (list) {
                     await list.cards.push(newCard._id);
                     console.log("cards pushed");
                     await list.save();
@@ -74,9 +75,9 @@ async function CreateCard(user_id, board_id, list_id, title, description, callba
                 }
             },
             function (err, result) {
-                if(err){
+                if (err) {
                     callback(err);
-                }    
+                }
                 if (newCard) {
                     callback({
                         success: true,
@@ -94,7 +95,8 @@ async function CreateCard(user_id, board_id, list_id, title, description, callba
 }
 
 async function DeleteCard(user_id, board_id, card_id, callback) {
-    if(!MemberValidator(user_id, board_id)){
+    const valid = MemberValidator(user_id, board_id);
+    if (!valid) {
         callback({
             success: false,
             message: "kun admins eller board ejer kan fjerne kort fra listen"
@@ -108,12 +110,12 @@ async function DeleteCard(user_id, board_id, card_id, callback) {
                 card.deleteOne();
                 return true;
             },
-            function(err, result){
-                if(err){
+            function (err, result) {
+                if (err) {
                     callback(err);
                     return;
                 }
-                if(card){
+                if (card) {
                     callback({
                         success: true,
                         message: "Kort er blevet slettet",
@@ -121,7 +123,7 @@ async function DeleteCard(user_id, board_id, card_id, callback) {
                     });
                 }
             });
-    }catch(err){
+    } catch (err) {
         callback({
             success: false,
             message: "Korted blev ikke slettet. " + err
@@ -129,45 +131,48 @@ async function DeleteCard(user_id, board_id, card_id, callback) {
     }
 }
 
-async function EditDescription(user_id, board_id, card_id, description, callback) {
-    if(!MemberValidator(user_id, board_id)){
+async function EditCard(user_id, board_id, card_id, title, description, callback) {
+    const valid = MemberValidator(user_id, board_id);
+    if (!valid) {
         callback({
             success: false,
-            message: "kun admins eller board ejer kan fjerne kort fra listen"
+            message: "kun admins eller board ejer kan redigere et kort"
         });
         return;
     }
-    try{
+    try {
         card = await Card.findOne({ _id: card_id });
         Lock.LockModel(card,
             function () {
                 card.description = description;
+                card.title = title;
                 card.save();
             },
             function (err, result) {
-                if(err){
+                if (err) {
                     callback(err);
                     return;
                 }
-                if(card){
+                if (card) {
                     callback({
                         success: true,
-                        message: "Kort beskrivelse er blevet gemt",
+                        message: "Kort er blevet gemt",
                         object: card
                     });
                 }
             }
         );
-    }catch(err){
+    } catch (err) {
         callback({
             success: false,
-            message: "Kort beskrivelse blev ikke gemt. " + err
+            message: "Kort blev ikke gemt. " + err
         });
     }
 }
 
 async function AddMember(user_id, board_id, card_id, member_id, callback) {
-    if (!OwnerAdminValidator(user_id, board_id)) {
+    const valid = OwnerAdminValidator(user_id, board_id);
+    if (!valid) {
         callback({
             success: false,
             message: "kun admins eller board ejer kan fjerne kort fra listen"
@@ -176,42 +181,43 @@ async function AddMember(user_id, board_id, card_id, member_id, callback) {
     }
     card = await Card.findOne({ _id: card_id });
     Lock.LockModel(card,
-    function () {
-        if (!card.members.includes(member_id)) {
-            card.members.push(member_id);
-            card.save();
-            return true;
-        }
-    },
-    function (err, result) {
-        if(err){
-            callback(err);
-            return;
-        }
-        if(result){
-            callback({
-                success: true,
-                message: "Kort er blevet gemt",
-                object: result
-            });
-        }
-    });
+        function () {
+            if (!card.members.includes(member_id)) {
+                card.members.push(member_id);
+                card.save();
+                return true;
+            }
+        },
+        function (err, result) {
+            if (err) {
+                callback(err);
+                return;
+            }
+            if (result) {
+                callback({
+                    success: true,
+                    message: "Kort er blevet gemt",
+                    object: result
+                });
+            }
+        });
 }
 
 async function RemoveMember(user_id, board_id, card_id, member_id, callback) {
-    if (!OwnerAdminValidator(user_id, board_id)) {
+    const valid = await OwnerAdminValidator(user_id, board_id)
+    if (!valid) {
         callback({
             success: false,
             message: "kun admins eller board ejer kan fjerne kort fra listen"
         });
         return;
     }
-    try{
+    try {
         card = await Card.findOne({ _id: card_id });
         console.log("CARD! " + card);
         result = Lock.LockModel(card,
-        function () {
-            if(card.members.includes(member_id)) {
+            function () {
+                if (card.members.includes(member_id)) {
                     const index = card.members.indexOf(member_id);
                     card.members.splice(index, 1);
                     card.save();
@@ -219,7 +225,7 @@ async function RemoveMember(user_id, board_id, card_id, member_id, callback) {
                 }
             },
             function (err, result) {
-                if(err){
+                if (err) {
                     callback(err);
                 }
                 if (card) {
@@ -231,17 +237,156 @@ async function RemoveMember(user_id, board_id, card_id, member_id, callback) {
                 }
             }
         );
-    }catch(err){
+    } catch (err) {
         callback({
-            success:false,
-            message: "noget gik galt da vi forsøgte at fjerne medlem fra kort. " + err 
+            success: false,
+            message: "noget gik galt da vi forsøgte at fjerne medlem fra kort. " + err
         });
-    }   
+    }
+}
+
+async function MoveCard(user_id, board_id, card_to_move_id, old_list_id, new_list_id, destination_index, callback) {
+    const valid = await MemberValidator(user_id, board_id);
+    if (!valid) {
+        callback({
+            success: false,
+            message: 'Kun medlemmer af boardet eller admins kan rykke et kort'
+        })
+        return;
+    }
+
+    try {
+
+        const board = await Board.findOne({ _id: board_id });
+        const oldList = await List.findOne({ _id: old_list_id });
+
+        if (oldList.board.toString() != board._id.toString()) {
+            callback({
+                success: false,
+                message: 'Listen tilhøre et andet board'
+            })
+            return;
+        }
+
+        let card = oldList.cards.find(c => c._id == card_to_move_id);
+
+        if (!card) {
+            callback({
+                success: false,
+                message: 'Kortet kunne ikke findes på listen'
+            })
+            return;
+        }
+
+
+        if (old_list_id.toString() == new_list_id.toString()) {
+            let _oldListCards = [...oldList.cards];
+
+            const cardIndex = _oldListCards.findIndex(c => c._id == card_to_move_id);
+            _oldListCards.splice(cardIndex, 1)
+            _oldListCards.splice(destination_index, 0, { _id: card_to_move_id });
+            oldList.cards = _oldListCards;
+
+            Lock.LockModel(oldList,
+                () => {
+                    oldList.save();
+                    return true;
+                }, (err, result) => {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+
+                    callback({
+                        success: true,
+                        message: 'Kort rykket',
+                        object: oldList
+                    });
+                    return;
+                }
+            );
+        } else {
+            const _card = await Card.findOne({ _id: card_to_move_id });
+            const newList = await List.findOne({ _id: new_list_id });
+
+            if (newList.board.toString() != board._id.toString()) {
+                callback({
+                    success: false,
+                    message: 'Den nye liste kunne ikke findes på boardet'
+                })
+                return;
+            }
+
+            let _oldListCards = [...oldList.cards];
+            const cardIndex = _oldListCards.findIndex(c => c._id == card_to_move_id);
+            console.log('CARD INDEX', cardIndex);
+            _oldListCards.splice(cardIndex, 1);
+
+            _newListCards = [...newList.cards];
+            _newListCards.splice(destination_index, 0, { _id: card_to_move_id });
+
+            // oldList.cards.pull({ _id: card_to_move_id });
+            // newList.cards.splice(destination_index, 0, { _id: card_to_move_id });
+            oldList.cards = _oldListCards;
+            newList.cards = _newListCards;
+
+            _card.list = newList._id;
+
+            Lock.LockModel(_card,
+                () => {
+                    _card.save();
+                    return true;
+                }, (err, result) => {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+                }
+            );
+
+            Lock.LockModel(oldList,
+                () => {
+                    oldList.save();
+                    return true;
+                }, (err, result) => {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+                }
+            );
+
+            Lock.LockModel(newList,
+                () => {
+                    newList.save();
+                    return true;
+                }, (err, result) => {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+                }
+            );
+
+            callback({
+                success: true,
+                message: 'Kort Rykket',
+                object: [oldList, newList]
+            });
+            return;
+        }
+    } catch (err) {
+        callback({
+            success: false,
+            message: 'Noget gik galt da vi forsøgte at rykke kortet' + err
+        })
+    }
 }
 
 exports.CreateCard = CreateCard;
 exports.DeleteCard = DeleteCard;
 exports.AddMember = AddMember;
 exports.RemoveMember = RemoveMember;
-exports.EditDescription = EditDescription;
+exports.EditCard = EditCard;
 exports.GetCards = GetCards;
+exports.MoveCard = MoveCard;

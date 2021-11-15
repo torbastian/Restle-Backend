@@ -1,9 +1,15 @@
 const BoardManager = require('./board_manager');
 const jwt = require('jsonwebtoken');
 const WebSocket = require('ws');
+const mediator = require('./mediator');
 
 function startWebscoketServer(server) {
   const boardManager = new BoardManager();
+
+  mediator.on('BoardUpdate', async function (boardId) {
+    boardManager.sendBoard(boardId);
+    boardManager.sendBoardListUpdate(boardId);
+  });
 
   const wss = new WebSocket.Server({
     noServer: true,
@@ -45,6 +51,20 @@ function startWebscoketServer(server) {
         case 'NEW_CARD':
           boardManager.createNewCard(userId, json.boardId, json.listId, json.details);
           break;
+        case 'UPDATE_BOARD':
+          boardManager.updateBoard(userId, json.boardId, json.details);
+          break;
+        case 'UPDATE_CARD':
+          boardManager.updateCard(userId, json.boardId, json.cardId, json.details);
+          break;
+        case 'UPDATE_LIST':
+          boardManager.updateList(userId, json.boardId, json.listId, json.details);
+          break;
+        case 'MOVE_LIST':
+          boardManager.moveList(userId, json.boardId, json.listId, json.newIndex);
+          break;
+        case 'MOVE_CARD':
+          boardManager.moveCard(userId, json.boardId, json.cardId, json.oldList, json.newList, json.destinationIndex);
         default:
           break;
       }

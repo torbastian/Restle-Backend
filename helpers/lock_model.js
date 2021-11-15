@@ -1,7 +1,5 @@
 function LockModel(ModelToLock, Action, Callback) {
     ModelToLock.lock(2000, async function (err, model) {
-        console.log("LOCK MODEL ERROR: " + err);
-        console.log("LOCK MODEL MODEL: " + model);
         if (!model) {
             Callback({
                 success: false,

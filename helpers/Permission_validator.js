@@ -12,7 +12,7 @@ async function OwnerAdminValidator(user_id, board_id) {
       return false;
     }
   } catch (err) {
-    throw new Error("user eller admin fejlede");
+    throw new Error("user eller admin fejlede " + err);
   }
 }
 
@@ -29,6 +29,7 @@ async function AdminValidator(user_id) {
 async function MemberValidator(user_id, board_id) {
   try {
     const board = await Board.findOne({ _id: board_id });
+    const user = await User.findOne({ _id: user_id });
 
     if (isAdmin(user) || isOwner(user_id, board) || isMember(user_id, board)) {
       return true;
@@ -36,20 +37,23 @@ async function MemberValidator(user_id, board_id) {
       return false;
     }
   } catch (err) {
-
+    throw new Error("member validator fejlede" + err);
   }
 }
 
 function isAdmin(user) {
-  return user.isAdmin;
+  const result = user.isAdmin;
+  return result;
 }
 
 function isMember(user_id, board) {
-  return board.members.includes(user_id);
+  const result = board.members.includes(user_id);
+  return result;
 }
 
 function isOwner(user_id, board) {
-  return board.owner == user_id;
+  const result = board.owner.toString() == user_id.toString();
+  return result;
 }
 
 exports.OwnerAdminValidator = OwnerAdminValidator;
