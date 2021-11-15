@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const List = require("../models/list_model");
 const Card = require("../models/card_model");
 const lockRelease = require('mongoose-lock-release');
+const mediator = require('../helpers/mediator');
 
 //Schemas
 var BoardSchema = new mongoose.Schema({
@@ -42,16 +43,22 @@ BoardSchema.plugin(lockRelease, 'Boards');
 
 //Pre
 
-BoardSchema.pre('save', { document : true }, async function() {
+BoardSchema.pre('save', { document: true }, async function () {
     this.last_edited = Date.now();
-  });
+});
 
-BoardSchema.pre('deleteOne', { document : true }, async function() {
+BoardSchema.pre('deleteOne', { document: true }, async function () {
     this.lists.array.forEach(list => {
-        mongoose.model('Lists').findOne({_id: list }).then(list => {
-            list.deleteOne({_id: list});
-        }); 
+        mongoose.model('Lists').findOne({ _id: list }).then(list => {
+            list.deleteOne({ _id: list });
+        });
     });
+});
+
+//Post
+
+BoardSchema.post('save', { document: true }, async function () {
+    mediator.emit('BoardUpdate', this._id);
 });
 
 //Compiled model

@@ -1,6 +1,8 @@
 const Board = require("../models/board_model");
 const List = require("../models/list_model");
-const User = require("../models/user_model")
+const User = require("../models/user_model");
+const Lock = require("./lock_model");
+const { OwnerAdminValidator } = require("./Permission_validator");
 
 async function GetBoardListAsOwner(board_owner) {
     try {
@@ -63,7 +65,7 @@ async function GetBoardListAsMember(member_id) {
 
 async function GetBoardList(boardId) {
     try {
-        return await Board.findById(boardId)
+        const board = await Board.findById(boardId)
             .populate({
                 path: 'owner',
                 select: 'username create_date first_name last_name colour'
@@ -72,13 +74,14 @@ async function GetBoardList(boardId) {
                 path: 'members',
                 select: 'username create_date first_name last_name colour'
             })
-            .select('-lists').then(board => {
-                return {
-                    sucess: true,
-                    message: 'Board Fundet',
-                    object: board
-                }
-            });
+            .select('-lists');
+
+        return {
+            sucess: true,
+            message: 'Board Fundet',
+            object: board
+        }
+
     } catch (err) {
         return {
             sucess: false,
@@ -173,7 +176,8 @@ async function CreateBoard(user_id, title, owner, description = "") {
 
 async function DeleteBoard(board_id, user_id, callback) {
     try {
-        if (!OwnerAdminValidator(user_id, board_id)) {
+        const valid = await OwnerAdminValidator(user_id, board_id);
+        if (!valid) {
             callback({
                 success: false,
                 message: "kun board ejer og admins kan slette boardet"
@@ -212,12 +216,13 @@ async function DeleteBoard(board_id, user_id, callback) {
     }
 }
 
-async function EditBoard(user_id, board_id, title, callback) {
+async function EditBoard(user_id, board_id, title, description, callback) {
     try {
-        if (!OwnerAdminValidator(user_id, board_id)) {
+        const valid = await OwnerAdminValidator(user_id, board_id);
+        if (!valid) {
             callback({
                 success: false,
-                message: "kun board ejer og admins kan redigere board title"
+                message: "kun board ejer og admins kan redigere board"
             });
         }
 
@@ -225,6 +230,7 @@ async function EditBoard(user_id, board_id, title, callback) {
         result = Lock.LockModel(board,
             function () {
                 board.title = title;
+                board.description = description;
                 board.save();
                 return true;
             },
@@ -249,14 +255,15 @@ async function EditBoard(user_id, board_id, title, callback) {
     } catch (err) {
         callback({
             success: false,
-            message: "board blev ikke updated"
+            message: "board blev ikke updated " + err
         });
     }
 }
 
 async function AddMember(user_id, board_id, member_id, callback) {
     try {
-        if (!OwnerAdminValidator(user_id, board_id)) {
+        const valid = await OwnerAdminValidator(user_id, board_id);
+        if (!valid) {
             callback({
                 success: false,
                 message: "kun board ejer og admins kan tilføje board medlemmer"
@@ -300,7 +307,8 @@ async function AddMember(user_id, board_id, member_id, callback) {
 
 async function RemoveMember(user_id, board_id, member_id, callback) {
     try {
-        if (!OwnerAdminValidator(user_id, board_id)) {
+        const valid = await OwnerAdminValidator(user_id, board_id);
+        if (!valid) {
             callback({
                 success: false,
                 message: "kun board ejer og admins kan fjerne board medlemmer"
@@ -345,7 +353,8 @@ async function RemoveMember(user_id, board_id, member_id, callback) {
 
 async function ChangeOwner(user_id, board_id, owner_id, callback) {
     try {
-        if (!OwnerAdminValidator(user_id, board_id)) {
+        const valid = !OwnerAdminValidator(user_id, board_id);
+        if (!valid) {
             callback({
                 success: false,
                 message: "kun board ejer og admins kan ændre board ejer"
@@ -387,7 +396,8 @@ async function ChangeOwner(user_id, board_id, owner_id, callback) {
 
 async function AddBoardList(user_id, board_id, list_id, callback) {
     try {
-        if (!OwnerAdminValidator(user_id, board_id)) {
+        const valid = !OwnerAdminValidator(user_id, board_id);
+        if (!valid) {
             callback({
                 success: false,
                 message: "kun board ejer og admins kan tilføje liste til board"
@@ -443,7 +453,8 @@ async function AddBoardList(user_id, board_id, list_id, callback) {
 
 async function RemoveList(user_id, board_id, list_id, callback) {
     try {
-        if (!OwnerAdminValidator(user_id, board_id)) {
+        const valid = !OwnerAdminValidator(user_id, board_id);
+        if (!valid) {
             callback({
                 success: false,
                 message: "kun board ejer og admins kan fjerne liste fra board"
@@ -496,35 +507,6 @@ async function RemoveList(user_id, board_id, list_id, callback) {
             success: false,
             message: "noget gik galt da vi forsøgte at fjerne listen. " + err
         });
-    }
-}
-
-function OwnerAdminValidator(user_id, board_id) {
-    try {
-        const board = Board.findOne({ _id: board_id });
-        const user = User.findOne({ _id: user_id });
-
-        if (user.isAdmin || user_id == board.owner) {
-            return true;
-        } else {
-            return false;
-        }
-    } catch (err) {
-        throw new Error("user eller admin fejlede");
-    }
-}
-
-function AdminValidator(user_id) {
-    try {
-        const user = User.findOne({ _id: user_id });
-
-        if (user.isAdmin) {
-            return true;
-        } else {
-            return false;
-        }
-    } catch (err) {
-        throw new Error("owner eller admin validator fejlede");
     }
 }
 
