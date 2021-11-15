@@ -65,6 +65,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
+//Get user?
 router.get('/', validateToken, async (req, res) => {
   await User.findById(req.user._id).then((user, err) => {
     if (!err) {
@@ -73,6 +74,56 @@ router.get('/', validateToken, async (req, res) => {
       res.status(400).send({ message: 'User not found' });
     }
   });
+});
+
+
+//Update user
+router.post('/update', validateToken, async (req, res) => {
+  const user = await User.findById(req.user._id)
+  user.first_name = req.body.first_name;
+  user.colour = req.body.colour;
+  user.last_name = req.body.last_name;
+  const { registerError } = registerValidation(user);
+  if (registerError) return res.status(400).send({ message: error.details[0].message });
+  user.last_name = encrypt(user.last_name);
+
+  if (req.body.password != null) {
+
+    if ((!compare(req.body.password, user.password))){
+       return res.status(400).send({ message: 'Wrong password' });
+    }
+    const hashedPassword = hash(req.body.new_password);
+    user.password = hashedPassword;
+
+    /* Kunne ikke lave en password validation der virkede, pls hjælp tor D:
+    
+    */
+    
+  }
+
+  try {
+    user.save().then(updateUser => {
+      if (updateUser == user) {
+        res.status(200).send(getUserInfo(user));
+      }
+    });
+  } catch (err) {
+    res.status(400).send(err);
+  }
+
+});
+
+//Delete user
+router.delete('/:userId', validateToken, async (req, res) => {
+  const userToDelete = await User.findById(req.params.userId);
+  if (userToDelete._id != req.user._id) {
+    return res.status(400).send({ message: 'Denied' });
+  }
+  else{
+  userToDelete.deleteOne();
+  console.log("User deleted")
+  return res.clearCookie('JWT').send();
+  }
 });
 
 //Simpel logout der sletter brugerens Json web token.
