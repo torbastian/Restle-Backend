@@ -80,4 +80,8 @@ router.get('/logout', async (req, res) => {
   res.clearCookie('JWT').send();
 });
 
+router.post('/AdminOverview', async(req, res) => {
+// GET DATA!
+});
+
 module.exports = router;
