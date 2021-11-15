@@ -135,4 +135,21 @@ router.post('/AdminOverview', async(req, res) => {
 // GET DATA!
 });
 
+router.get('/findUser', async(req, ress) => {
+  users = await User.find({ first_name: { $regex: '.*' + req.params.first_name + '.*' } });
+  await User.find({ email: { $regex: '.*' + req.params.email + '.*' } }).select({
+    _id, first_name, last_name, email, colour}).
+    then(elements => {
+    if(!users.includes(element)){
+      users.push(element);
+    }
+  })
+
+  if(!users){
+    return ress.status(400).send({message: "no useres found"})
+  }else{
+    return ress.status(200).send(useres);
+  }
+});
+
 module.exports = router;
