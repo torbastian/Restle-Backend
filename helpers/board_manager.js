@@ -101,8 +101,8 @@ class BoardManager {
   async createNewBoard(ws, userId, details) {
     await CreateBoard(userId, details.title, userId, details.description, (result) => {
       if (result.success) {
-        //this.boardListSubscribe([result.object], { ws: ws, userId: userId });
-        //this.sendBoardListUpdate(result.object._id);
+        this.boardListSubscribe([result.object], { ws: ws, userId: userId });
+        this.sendBoardListUpdate(result.object._id);
       }
     });
   }
