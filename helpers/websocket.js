@@ -46,7 +46,7 @@ function startWebscoketServer(server) {
           boardManager.subscribeToBoardList(ws, userId);
           break;
         case 'NEW_BOARD':
-          boardManager.createNewBoard(userId, json.details);
+          boardManager.createNewBoard(ws, userId, json.details);
           break;
         case 'NEW_LIST':
           boardManager.createNewList(userId, json.boardId, json.details);
@@ -94,10 +94,19 @@ function startWebscoketServer(server) {
 function VerifyUserToken(ws, req) {
   try {
     //Hvis brugeren ikke har en cookie, sluk forbindelsen
-    if (req.headers.cookie == undefined) return ws.close(1008, 'No cookie');
+    if (!req.headers.cookie) return ws.close(1008, 'No cookie');
+
+    const cookies = req.headers.cookie.split(';');
+    let cookie = cookies.find(row => row.startsWith(' JWT='));
+
+    if (!cookie) {
+      cookie = cookies.find(row => row.startsWith('JWT='));
+    }
+
+    if (!cookie) return ws.close(1008, 'No token');
 
     //Hvis brugeren ikke har en token, sluk forbindelsen
-    const token = req.headers.cookie.split(';').find(row => row.startsWith('JWT=')).split('=')[1];
+    const token = cookie.split('=')[1];
 
     if (!token) return ws.close(1008, 'Access Denied');
 

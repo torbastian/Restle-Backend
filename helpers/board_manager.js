@@ -99,15 +99,23 @@ class BoardManager {
   }
 
   async createNewBoard(userId, details) {
-    await CreateBoard(userId, details.title, userId, details.description);
+    await CreateBoard(userId, details.title, userId, details.description, (result) => {
+      if (result.success) {
+        this.sendBoard(result.object._id);
+        this.sendBoardListUpdate(result.object._id);
+      }
+    });
   }
 
   async createNewList(userId, boardId, details, count = 0) {
     count++;
     await CreateList(userId, boardId, details.title, (result) => {
       console.log(result);
-      if (!result.success && result.status == "DB" && count < 5)
+      if (!result.success && result.status == "DB" && count < 5) {
         this.createNewList(userId, boardId, details, count);
+      } else {
+        this.sendBoard(boardId);
+      }
     });
   }
 
@@ -116,6 +124,8 @@ class BoardManager {
     await CreateCard(userId, boardId, listId, details.title, details.description, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
         this.createNewCard(userId, boardId, listId, details, count);
+      } else {
+        this.sendBoard(boardId);
       }
     });
   }
@@ -126,6 +136,9 @@ class BoardManager {
       console.log(result);
       if (!result.success && result.status == "DB" && count < 5) {
         this.updateBoard(userId, boardId, details, count);
+      } else {
+        this.sendBoard(boardId);
+        this.sendBoardListUpdate(boardId);
       }
     });
   }
