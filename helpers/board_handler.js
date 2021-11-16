@@ -194,12 +194,12 @@ async function DeleteBoard(board_id, user_id, callback) {
         board = await Board.findOne({ _id: board_id });
         Lock.LockModel(board,
             async function () {
-                lists = List.find({
+                lists = await List.find({
                     board: board._id
                 });
-                lists.forEach(element => {
+                await lists.forEach(element => {
                     Lock.LockModel(element, function(){
-                        ListHandler.DeleteList(user_id, board._id, element, function(){
+                        ListHandler.DeleteList(user_id, board_id, element, function(){
                             
                         });
                         return true;
@@ -210,6 +210,7 @@ async function DeleteBoard(board_id, user_id, callback) {
                         }
                     });
                 });
+                console.log("HEJ Board SLETTET!");
                 board.deleteOne();
                 return true;
             },
