@@ -27,7 +27,6 @@ async function AdminValidator(user_id) {
 }
 
 async function MemberValidator(user_id, board_id) {
-  console.log(board_id);
   try {
     const board = await Board.findOne({ _id: board_id });
     const user = await User.findOne({ _id: user_id });

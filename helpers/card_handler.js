@@ -65,10 +65,8 @@ async function CreateCard(user_id, board_id, list_id, title, description, callba
             async function () {
                 if (list) {
                     await list.cards.push(newCard._id);
-                    console.log("cards pushed");
                     await list.save();
                     await newCard.save();
-                    console.log("list saved");
                     return true;
                 } else {
                     return false;
@@ -214,7 +212,6 @@ async function RemoveMember(user_id, board_id, card_id, member_id, callback) {
     }
     try {
         card = await Card.findOne({ _id: card_id });
-        console.log("CARD! " + card);
         result = Lock.LockModel(card,
             function () {
                 if (card.members.includes(member_id)) {
@@ -319,7 +316,6 @@ async function MoveCard(user_id, board_id, card_to_move_id, old_list_id, new_lis
 
             let _oldListCards = [...oldList.cards];
             const cardIndex = _oldListCards.findIndex(c => c._id == card_to_move_id);
-            console.log('CARD INDEX', cardIndex);
             _oldListCards.splice(cardIndex, 1);
 
             _newListCards = [...newList.cards];

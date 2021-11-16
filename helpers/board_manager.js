@@ -145,7 +145,6 @@ class BoardManager {
   async createNewList(userId, boardId, details, count = 0) {
     count++;
     await CreateList(userId, boardId, details.title, (result) => {
-      console.log(result);
       if (!result.success && result.status == "DB" && count < 5) {
         this.createNewList(userId, boardId, details, count);
       } else {
@@ -168,7 +167,6 @@ class BoardManager {
   async updateBoard(userId, boardId, details, count = 0) {
     count++;
     await EditBoard(userId, boardId, details.title, details.description, (result) => {
-      console.log(result);
       if (!result.success && result.status == "DB" && count < 5) {
         this.updateBoard(userId, boardId, details, count);
       } else {
@@ -192,7 +190,6 @@ class BoardManager {
   async updateList(userId, boardId, listId, details, count = 0) {
     count++;
     await EditList(userId, boardId, listId, details.title, (result) => {
-      console.log(result);
       if (!result.success && result.status == "DB" && count < 5) {
         this.updateList(userId, boardId, listId, details, count);
       } else {
@@ -270,7 +267,6 @@ class BoardManager {
 
       subscriptions.forEach(sub => {
         if (board.owner._id == sub.userId) {
-          console.log('Board_list_update');
           const listUpdate = JSON.stringify({
             response: 'BOARD_LIST_UPDATE',
             time: Date.now(),
@@ -279,7 +275,6 @@ class BoardManager {
 
           sub.ws.send(listUpdate);
         } else {
-          console.log('Board_list_update');
           const listUpdate = JSON.stringify({
             response: 'BOARD_LIST_UPDATE',
             time: Date.now(),

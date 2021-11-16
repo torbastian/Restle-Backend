@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const { reqToUser } = require('../helpers/req_converter');
 const { registerValidation, loginValidation } = require('../helpers/validation');
 const { signUserToken, newUser, getUserInfo } = require('../helpers/user_helper');
-const TokenHandler = require('../helpers/token_handler');
+const {ValidateToken} = require('../helpers/token_handler');
 
 router.post('/register', async (req, res) => {
   const reqUser = reqToUser(req);
@@ -66,7 +66,7 @@ router.post('/login', async (req, res) => {
 });
 
 //Get user?
-router.get('/', async (req, res) => {
+router.get('/', ValidateToken, async (req, res) => {
   await User.findById(req.user._id).then((user, err) => {
     if (!err) {
       res.status(200).send(getUserInfo(user))
@@ -78,7 +78,7 @@ router.get('/', async (req, res) => {
 
 
 //Update user
-router.post('/update', async (req, res) => {
+router.post('/update', ValidateToken,  async (req, res) => {
   const user = await User.findById(req.user._id)
   user.first_name = req.body.first_name;
   user.colour = req.body.colour;
@@ -95,9 +95,7 @@ router.post('/update', async (req, res) => {
 
 
     /* Kunne ikke lave en password validation der virkede, pls hjælp tor D: */
-    console.log("HEJ: " + req.body.new_password);
     const {error} = loginValidation({ username: user.username, password: req.body.new_password });
-    console.log("ERROR: ", error);
     if(error){
       return res.status(400).send({ message: error });
     }
@@ -119,14 +117,13 @@ router.post('/update', async (req, res) => {
 });
 
 //Delete user
-router.delete('/:userId', async (req, res) => {
+router.delete('/:userId', ValidateToken, async (req, res) => {
   const userToDelete = await User.findById(req.params.userId);
   if (userToDelete._id != req.user._id) {
     return res.status(400).send({ message: 'Denied' });
   }
   else{
   userToDelete.deleteOne();
-  console.log("User deleted")
   return res.clearCookie('JWT').send();
   }
 });
@@ -140,11 +137,9 @@ router.post('/AdminOverview', async(req, res) => {
 // GET DATA!
 });
 
-router.get('/findUser', async(req, res) => {
-  console.log("YOU FOUND ME!: " , req.query.search);
+router.get('/findUser', ValidateToken,  async(req, res) => {
   users = await User.find({$or: [{ first_name: { $regex: '.*' + req.query.search + '.*' } }, { email: { $regex: '.*' + req.query.search + '.*' } }]}
   , ['_id', 'first_name', 'last_name', 'email', 'colour']);
-  console.log("USERS", users);
 
   if(!users){
     return res.status(400).send({message: "no useres found"})

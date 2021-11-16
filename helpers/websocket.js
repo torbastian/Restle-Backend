@@ -2,6 +2,7 @@ const BoardManager = require('./board_manager');
 const jwt = require('jsonwebtoken');
 const WebSocket = require('ws');
 const mediator = require('./mediator');
+const {CheckToken} = require('./token_handler'); 
 
 function startWebscoketServer(server) {
   const boardManager = new BoardManager();
@@ -24,15 +25,16 @@ function startWebscoketServer(server) {
   });
 
   //Når en bruger forbindes til serveren
-  wss.on('connection', (ws, req) => {
+  wss.on('connection', async (ws, req) => {
+    
     //Verificer bruger token
-    const userId = VerifyUserToken(ws, req);
-
+    const userId = await VerifyUserToken(ws, req);
+    console.log("i am userid: ", userId);
     //Foretage handlinger baseret på forespørgelsen der modtages
     ws.on('message', (data) => {
-      console.log(`recieved: ${data} from ${userId}`);
       const json = JSON.parse(data);
       const request = json.request;
+      console.log("",json);
 
       //Udfør operationer baseret på forespørgelsen
       switch (request) {
@@ -91,7 +93,7 @@ function startWebscoketServer(server) {
   return wss;
 }
 
-function VerifyUserToken(ws, req) {
+async function VerifyUserToken(ws, req) {
   try {
     //Hvis brugeren ikke har en cookie, sluk forbindelsen
     if (!req.headers.cookie) return ws.close(1008, 'No cookie');
@@ -103,17 +105,39 @@ function VerifyUserToken(ws, req) {
       cookie = cookies.find(row => row.startsWith('JWT='));
     }
 
-    if (!cookie) return ws.close(1008, 'No token');
+    if (!cookie){
+      return ws.close(1008, 'No token');
+    } 
 
     //Hvis brugeren ikke har en token, sluk forbindelsen
     const token = cookie.split('=')[1];
 
-    if (!token) return ws.close(1008, 'Access Denied');
+    if (!token){
+      return ws.close(1008, 'Access Denied');
+    } 
 
     //TODO Hook up token handler
 
+    /*const verified = jwt.verify(token, process.env.TOKEN_SECRET, function(err, decoded){
+      console.log("I AM ERROR AGIEN: ", err);
+      console.log("I AM DECODED: ", decoded);
+    }); */  
+
+    
     const verified = jwt.verify(token, process.env.TOKEN_SECRET);
+    console.log("i am verifed: ", verified);
     req.user = verified;
+    console.log("i am req.user: ", req.user);
+
+    const check = await CheckToken(verified._id, token);
+    console.log("i am check: ", check);
+    if(!check.success){
+      console.log("im closing!");
+      return ws.close(1008, 'Access Denied');
+    }
+
+
+    console.log("i am returning");
     return verified._id;
 
   } catch (err) {
