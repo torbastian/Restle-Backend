@@ -98,12 +98,11 @@ class BoardManager {
     }
   }
 
-  async createNewBoard(userId, details) {
-    console.log("DETAILS: ", details);
+  async createNewBoard(ws, userId, details) {
     await CreateBoard(userId, details.title, userId, details.description, (result) => {
       if (result.success) {
-        this.sendBoard(result.object._id);
-        this.sendBoardListUpdate(result.object._id);
+        //this.boardListSubscribe([result.object], { ws: ws, userId: userId });
+        //this.sendBoardListUpdate(result.object._id);
       }
     });
   }
