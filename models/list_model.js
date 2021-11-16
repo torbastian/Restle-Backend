@@ -38,20 +38,6 @@ ListSchema.pre('save', { document: true }, async function () {
     this.last_edited = Date.now();
 });
 
-ListSchema.pre('deleteOne', { document: true }, async function () {
-    Lock.LockModel(this, function () {
-        this.cards.array.forEach(element => {
-            const card = Card.findOne({ _id: element });
-            if (card) {
-                card.deleteOne();
-            }
-        });
-    },
-        function (err, result) {
-
-        });
-});
-
 // Post
 ListSchema.post('save', { document: true }, async function () {
     mediator.emit('UpdateBoardLastEdited', this.board);
