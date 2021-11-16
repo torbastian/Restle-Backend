@@ -6,7 +6,9 @@ const { TokenHandler } = require('./token_handler');
 async function signUserToken(user, res) {
 
   try {
-    const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
+
+    const seed = Date.now();
+    const token = jwt.sign({ _id: user._id, seed: seed }, process.env.TOKEN_SECRET);
 
     await TokenHandler(user._id, token);
 
