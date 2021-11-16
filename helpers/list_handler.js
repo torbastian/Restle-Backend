@@ -110,7 +110,7 @@ async function DeleteList(user_id, board_id, list_id, callback) {
 
                         cards = Card.find({list: list._id});
 
-                        cards.array.forEach(element => {
+                        cards.forEach(element => {
                             CardHandler.DeleteCard(user_id, board_id, element._id, function(){
                                 
                             });

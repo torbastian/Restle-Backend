@@ -142,18 +142,18 @@ async function GetBoard(boardId) {
     }
 }
 
-async function CreateBoard(user_id, title, owner, description = "") {
+async function CreateBoard(user_id, title, owner, description = "", callback) {
     if (title.length > 40) {
-        return {
+        callback({
             success: false,
             message: "title er for lang, max 40 charatere"
-        }
+        });
     }
     if (description.length > 1024) {
-        return {
+        callback({
             success: false,
             message: "description er for lang, max 1024 charatere"
-        }
+        });
     }
 
     const newBoard = new Board({
@@ -168,16 +168,16 @@ async function CreateBoard(user_id, title, owner, description = "") {
 
     try {
         newBoard.save();
-        return {
+        callback({
             success: true,
             message: "Board blev gemt.",
             object: newBoard
-        }
+        });
     } catch (err) {
-        return {
+        callback({
             success: false,
             message: "board blev ikke gemt. " + err
-        };
+        });
     }
 }
 
@@ -197,7 +197,7 @@ async function DeleteBoard(board_id, user_id, callback) {
                 lists = List.find({
                     board: board._id
                 });
-                lists.array.forEach(element => {
+                lists.forEach(element => {
                     Lock.LockModel(element, function(){
                         ListHandler.DeleteList(user_id, board._id, element, function(){
                             
