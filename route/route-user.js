@@ -140,20 +140,22 @@ router.post('/AdminOverview', async(req, res) => {
 // GET DATA!
 });
 
-router.get('/findUser', async(req, ress) => {
-  users = await User.find({ first_name: { $regex: '.*' + req.params.first_name + '.*' } });
-  await User.find({ email: { $regex: '.*' + req.params.email + '.*' } }).select({
-    _id, first_name, last_name, email, colour}).
+router.get('/findUser', async(req, res) => {
+  console.log("YOU FOUND ME!: " , req.query.search);
+  users = await User.find({ first_name: { $regex: '.*' + req.query.search + '.*' } }, ['_id', 'first_name', 'last_name', 'email', 'colour']);
+  await User.find({ email: { $regex: '.*' + req.query.search + '.*' } }, ['_id', 'first_name', 'last_name', 'email', 'colour']).
     then(element => {
-    if(!users.includes(element)){
-      users.push(element);
-    }
+      element.forEach(user => {
+        if(!users.includes(user)){
+          users.push(user);
+        }
+      })
   })
 
   if(!users){
-    return ress.status(400).send({message: "no useres found"})
+    return res.status(400).send({message: "no useres found"})
   }else{
-    return ress.status(200).send(useres);
+    return res.status(200).send(users);
   }
 });
 
