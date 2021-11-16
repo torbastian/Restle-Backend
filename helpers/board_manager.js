@@ -98,6 +98,41 @@ class BoardManager {
     }
   }
 
+  async deleteBoardSubscription(boardId) {
+    try {
+
+      if (this.boardSubscriptions[boardId]) {
+        this.sendBoardDelete(boardId, this.boardSubscriptions[boardId].subscribers);
+        delete this.boardSubscriptions[boardId];
+      }
+
+      if (this.boardListSubscriptions[boardId]) {
+        this.sendBoardDelete(boardId, this.boardListSubscriptions[boardId].subscribers);
+        delete this.boardListSubscriptions[boardId];
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  sendBoardDelete(boardId, subscribers) {
+    try {
+      if (!subscribers) return;
+
+      subscribers.forEach(sub => {
+        const boardDelete = JSON.stringify({
+          response: 'BOARD_DELETE',
+          time: Date.now(),
+          boardId: boardId
+        });
+
+        sub.ws.send(boardDelete);
+      })
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   async createNewBoard(ws, userId, details) {
     await CreateBoard(userId, details.title, userId, details.description, (result) => {
       if (result.success) {
@@ -192,7 +227,7 @@ class BoardManager {
       if (!result.success && result.status == "DB" && count < 5) {
         this.deleteBoard(userId, boardId, count);
       } else {
-        this.sendBoard(boardId);
+        this.deleteBoardSubscription(boardId);
       }
     });
   }
