@@ -99,6 +99,7 @@ class BoardManager {
   }
 
   async createNewBoard(userId, details) {
+    console.log("DETAILS: ", details);
     await CreateBoard(userId, details.title, userId, details.description, (result) => {
       if (result.success) {
         this.sendBoard(result.object._id);

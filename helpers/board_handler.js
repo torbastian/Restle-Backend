@@ -143,6 +143,7 @@ async function GetBoard(boardId) {
 }
 
 async function CreateBoard(user_id, title, owner, description, callback) {
+    console.log("title" + title);
     if (title.length > 40) {
         callback({
             success: false,
