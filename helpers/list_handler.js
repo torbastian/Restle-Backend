@@ -105,7 +105,7 @@ async function DeleteList(user_id, board_id, list_id, callback) {
         board = await Board.findOne({ _id: board_id });
         Lock.LockModel(list,
             function () {
-                await Lock.LockModel(board,
+                Lock.LockModel(board,
                     async function () {
 
                         cards = await Card.find({list: list._id});
