@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const { reqToUser } = require('../helpers/req_converter');
 const { registerValidation, loginValidation } = require('../helpers/validation');
 const { signUserToken, newUser, getUserInfo } = require('../helpers/user_helper');
-const { validateToken } = require('../helpers/token_handler');
+const TokenHandler = require('../helpers/token_handler');
 
 router.post('/register', async (req, res) => {
   const reqUser = reqToUser(req);
@@ -66,7 +66,7 @@ router.post('/login', async (req, res) => {
 });
 
 //Get user?
-router.get('/', validateToken, async (req, res) => {
+router.get('/', async (req, res) => {
   await User.findById(req.user._id).then((user, err) => {
     if (!err) {
       res.status(200).send(getUserInfo(user))
@@ -78,7 +78,7 @@ router.get('/', validateToken, async (req, res) => {
 
 
 //Update user
-router.post('/update', validateToken, async (req, res) => {
+router.post('/update', async (req, res) => {
   const user = await User.findById(req.user._id)
   user.first_name = req.body.first_name;
   user.colour = req.body.colour;
@@ -119,7 +119,7 @@ router.post('/update', validateToken, async (req, res) => {
 });
 
 //Delete user
-router.delete('/:userId', validateToken, async (req, res) => {
+router.delete('/:userId', async (req, res) => {
   const userToDelete = await User.findById(req.params.userId);
   if (userToDelete._id != req.user._id) {
     return res.status(400).send({ message: 'Denied' });
@@ -142,15 +142,9 @@ router.post('/AdminOverview', async(req, res) => {
 
 router.get('/findUser', async(req, res) => {
   console.log("YOU FOUND ME!: " , req.query.search);
-  users = await User.find({ first_name: { $regex: '.*' + req.query.search + '.*' } }, ['_id', 'first_name', 'last_name', 'email', 'colour']);
-  await User.find({ email: { $regex: '.*' + req.query.search + '.*' } }, ['_id', 'first_name', 'last_name', 'email', 'colour']).
-    then(element => {
-      element.forEach(user => {
-        if(!users.includes(user)){
-          users.push(user);
-        }
-      })
-  })
+  users = await User.find({$or: [{ first_name: { $regex: '.*' + req.query.search + '.*' } }, { email: { $regex: '.*' + req.query.search + '.*' } }]}
+  , ['_id', 'first_name', 'last_name', 'email', 'colour']);
+  console.log("USERS", users);
 
   if(!users){
     return res.status(400).send({message: "no useres found"})
