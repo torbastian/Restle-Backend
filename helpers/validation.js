@@ -18,7 +18,6 @@ function loginValidation(data) {
     username: Joi.string().min(4).max(16).required(),
     password: Joi.string().min(6).max(40).required()
   }).unknown();
-  console.log(data)
 
   return joiSchema.validate(data);
 }

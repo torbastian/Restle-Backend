@@ -92,13 +92,18 @@ router.post('/update', validateToken, async (req, res) => {
     if ((!compare(req.body.password, user.password))){
        return res.status(400).send({ message: 'Wrong password' });
     }
+
+
+    /* Kunne ikke lave en password validation der virkede, pls hjælp tor D: */
+    console.log("HEJ: " + req.body.new_password);
+    const {error} = loginValidation({ username: user.username, password: req.body.new_password });
+    console.log("ERROR: ", error);
+    if(error){
+      return res.status(400).send({ message: error });
+    }
+
     const hashedPassword = hash(req.body.new_password);
     user.password = hashedPassword;
-
-    /* Kunne ikke lave en password validation der virkede, pls hjælp tor D:
-    
-    */
-    
   }
 
   try {
@@ -139,7 +144,7 @@ router.get('/findUser', async(req, ress) => {
   users = await User.find({ first_name: { $regex: '.*' + req.params.first_name + '.*' } });
   await User.find({ email: { $regex: '.*' + req.params.email + '.*' } }).select({
     _id, first_name, last_name, email, colour}).
-    then(elements => {
+    then(element => {
     if(!users.includes(element)){
       users.push(element);
     }
