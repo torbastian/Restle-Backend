@@ -6,11 +6,11 @@ const cors = require('cors');
 const app = express();
 
 //TEST-----------------------------------------------------------
-async function TEST(){
+async function TEST() {
   const Board = require("./helpers/board_handler");
   const List = require("./helpers/list_handler");
   const Card = require("./helpers/card_handler");
-  
+
   const boardResponse = await Board.CreateBoard("testTitle", "6184ea59d58bc4c9980f68e1", "testDescription");
   const board = boardResponse.object;
 
@@ -18,22 +18,22 @@ async function TEST(){
   const list1 = ListRespons1.object;
 
   let card1;
-  await Card.CreateCard(board._id, list1._id, "testCard 1", "testDescription", function(card){
+  await Card.CreateCard(board._id, list1._id, "testCard 1", "testDescription", function (card) {
     console.log("RETURN CARD CREATECARD 1: " + card.message);
-    if(card.success){
+    if (card.success) {
       card1 = card.object;
     }
   });
 
-  await Card.AddMember(card1._id, "6184ea59d58bc4c9980f68e1", function(card){
+  await Card.AddMember(card1._id, "6184ea59d58bc4c9980f68e1", function (card) {
     console.log("RETURN CARD ADDMEMBER 1: " + card.message);
   });
 
-  await Card.AddMember(card1._id, "6181328703821ded9204e383", function(card){
+  await Card.AddMember(card1._id, "6181328703821ded9204e383", function (card) {
     console.log("RETURN CARD ADDMEMBER 2: " + card.message);
   });
 
-  await Card.RemoveMember(card1._id, "6184ea59d58bc4c9980f68e1", function(card){
+  await Card.RemoveMember(card1._id, "6184ea59d58bc4c9980f68e1", function (card) {
     console.log("RETURN CARD REMOVEMEMBER 1: " + card.message);
   });
 
@@ -41,18 +41,18 @@ async function TEST(){
   const list2 = ListRespons2.object;
 
   let card2
-  await Card.CreateCard(board._id, list2._id, "testCard 1", "testDescription", function(card){
+  await Card.CreateCard(board._id, list2._id, "testCard 1", "testDescription", function (card) {
     console.log("RETURN CARD CREATECARD 2: " + card.message);
-    if(card.success){
+    if (card.success) {
       card2 = card;
     }
   });
 
-  await Card.DeleteCard(card2._id, function(card){
+  await Card.DeleteCard(card2._id, function (card) {
     console.log("RETURN CARD DELETECARD 1: " + card.message);
   })
-  
-  await Card.CreateCard(board._id, list2._id, "testCard 2", "testDescription",function(card){
+
+  await Card.CreateCard(board._id, list2._id, "testCard 2", "testDescription", function (card) {
     console.log(card.message);
   });
 
@@ -65,6 +65,7 @@ async function TEST(){
 
 //Importer routes
 const userRoute = require('./route/route-user');
+const boardRoute = require('./route/route-board');
 const { startWebscoketServer } = require('./helpers/websocket');
 const { CreateBoard } = require('./helpers/board_handler');
 
@@ -79,6 +80,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/user', userRoute);
+app.use('/board', boardRoute);
 
 console.log(process.env.DB_CONNECTION);
 

@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const { reqToUser } = require('../helpers/req_converter');
 const { registerValidation, loginValidation } = require('../helpers/validation');
 const { signUserToken, newUser, getUserInfo } = require('../helpers/user_helper');
-const {ValidateToken} = require('../helpers/token_handler');
+const { ValidateToken } = require('../helpers/token_handler');
 
 router.post('/register', async (req, res) => {
   const reqUser = reqToUser(req);
@@ -78,7 +78,7 @@ router.get('/', ValidateToken, async (req, res) => {
 
 
 //Update user
-router.post('/update', ValidateToken,  async (req, res) => {
+router.post('/update', ValidateToken, async (req, res) => {
   const user = await User.findById(req.user._id)
   user.first_name = req.body.first_name;
   user.colour = req.body.colour;
@@ -89,14 +89,14 @@ router.post('/update', ValidateToken,  async (req, res) => {
 
   if (req.body.password != null) {
 
-    if ((!compare(req.body.password, user.password))){
-       return res.status(400).send({ message: 'Wrong password' });
+    if ((!compare(req.body.password, user.password))) {
+      return res.status(400).send({ message: 'Wrong password' });
     }
 
 
     /* Kunne ikke lave en password validation der virkede, pls hjælp tor D: */
-    const {error} = loginValidation({ username: user.username, password: req.body.new_password });
-    if(error){
+    const { error } = loginValidation({ username: user.username, password: req.body.new_password });
+    if (error) {
       return res.status(400).send({ message: error });
     }
 
@@ -122,9 +122,9 @@ router.delete('/:userId', ValidateToken, async (req, res) => {
   if (userToDelete._id != req.user._id) {
     return res.status(400).send({ message: 'Denied' });
   }
-  else{
-  userToDelete.deleteOne();
-  return res.clearCookie('JWT').send();
+  else {
+    userToDelete.deleteOne();
+    return res.clearCookie('JWT').send();
   }
 });
 
@@ -133,17 +133,17 @@ router.get('/logout', async (req, res) => {
   res.clearCookie('JWT').send();
 });
 
-router.post('/AdminOverview', async(req, res) => {
-// GET DATA!
+router.post('/AdminOverview', async (req, res) => {
+  // GET DATA!
 });
 
-router.get('/findUser', ValidateToken,  async(req, res) => {
-  users = await User.find({$or: [{ first_name: { $regex: '.*' + req.query.search + '.*' } }, { email: { $regex: '.*' + req.query.search + '.*' } }]}
-  , ['_id', 'first_name', 'last_name', 'email', 'colour']);
+router.get('/findUser', ValidateToken, async (req, res) => {
+  users = await User.find({ $or: [{ first_name: { $regex: '.*' + req.query.search + '.*' } }, { email: { $regex: '.*' + req.query.search + '.*' } }] }
+    , ['_id', 'first_name', 'last_name', 'email', 'colour']);
 
-  if(!users){
-    return res.status(400).send({message: "no useres found"})
-  }else{
+  if (!users) {
+    return res.status(400).send({ message: "no useres found" })
+  } else {
     return res.status(200).send(users);
   }
 });

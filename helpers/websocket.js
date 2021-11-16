@@ -2,7 +2,7 @@ const BoardManager = require('./board_manager');
 const jwt = require('jsonwebtoken');
 const WebSocket = require('ws');
 const mediator = require('./mediator');
-const {CheckToken} = require('./token_handler'); 
+const { CheckToken } = require('./token_handler');
 
 function startWebscoketServer(server) {
   const boardManager = new BoardManager();
@@ -26,15 +26,23 @@ function startWebscoketServer(server) {
 
   //Når en bruger forbindes til serveren
   wss.on('connection', async (ws, req) => {
-    
+
     //Verificer bruger token
     const userId = await VerifyUserToken(ws, req);
+
+    const connectResponse = JSON.stringify({
+      response: 'CONNECTED_READY',
+      time: Date.now()
+    })
+
+    ws.send(connectResponse);
     console.log("i am userid: ", userId);
+
     //Foretage handlinger baseret på forespørgelsen der modtages
     ws.on('message', (data) => {
       const json = JSON.parse(data);
       const request = json.request;
-      console.log("",json);
+      console.log("", json);
 
       //Udfør operationer baseret på forespørgelsen
       switch (request) {
@@ -105,25 +113,25 @@ async function VerifyUserToken(ws, req) {
       cookie = cookies.find(row => row.startsWith('JWT='));
     }
 
-    if (!cookie){
+    if (!cookie) {
       return ws.close(1008, 'No token');
-    } 
+    }
 
     //Hvis brugeren ikke har en token, sluk forbindelsen
     const token = cookie.split('=')[1];
 
-    if (!token){
+    if (!token) {
       return ws.close(1008, 'Access Denied');
-    } 
+    }
 
     //TODO Hook up token handler
 
     /*const verified = jwt.verify(token, process.env.TOKEN_SECRET, function(err, decoded){
       console.log("I AM ERROR AGIEN: ", err);
       console.log("I AM DECODED: ", decoded);
-    }); */  
+    }); */
 
-    
+
     const verified = jwt.verify(token, process.env.TOKEN_SECRET);
     console.log("i am verifed: ", verified);
     req.user = verified;
@@ -131,7 +139,7 @@ async function VerifyUserToken(ws, req) {
 
     const check = await CheckToken(verified._id, token);
     console.log("i am check: ", check);
-    if(!check.success){
+    if (!check.success) {
       console.log("im closing!");
       return ws.close(1008, 'Access Denied');
     }
