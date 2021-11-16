@@ -39,6 +39,9 @@ function startWebscoketServer(server) {
         case 'SUBSCRIBE_BOARD':
           boardManager.subscribeToBoard(ws, userId, json.boardId);
           break;
+        case 'SUBSCRIBE_BOARD_COOKIE':
+          boardManager.subscribeToBoardSession(ws, userId, json.boardId, json.lastEdited);
+          break;
         case 'SUBSCRIBE_BOARD_LIST':
           boardManager.subscribeToBoardList(ws, userId);
           break;
@@ -65,6 +68,16 @@ function startWebscoketServer(server) {
           break;
         case 'MOVE_CARD':
           boardManager.moveCard(userId, json.boardId, json.cardId, json.oldList, json.newList, json.destinationIndex);
+          break;
+        case 'DELETE_LIST':
+          boardManager.deleteList(userId, json.boardId, json.listId);
+          break;
+        case 'DELETE_BOARD':
+          boardManager.deleteBoard(userId, json.boardId);
+          break;
+        case 'DELETE_CARD':
+          boardManager.deleteCard(userId, json.boardId, json.cardId);
+          break;
         default:
           break;
       }
@@ -84,7 +97,8 @@ function VerifyUserToken(ws, req) {
     if (req.headers.cookie == undefined) return ws.close(1008, 'No cookie');
 
     //Hvis brugeren ikke har en token, sluk forbindelsen
-    const token = req.headers.cookie.substr(4, req.headers.cookie.length);
+    const token = req.headers.cookie.split(';').find(row => row.startsWith('JWT=')).split('=')[1];
+
     if (!token) return ws.close(1008, 'Access Denied');
 
     //TODO Hook up token handler

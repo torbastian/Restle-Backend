@@ -1,7 +1,7 @@
-const { CreateBoard, GetBoard, GetBoardListAsOwner, GetBoardListAsMember, GetBoardList, EditBoard } = require("./board_handler");
+const { CreateBoard, GetBoard, GetBoardListAsOwner, GetBoardListAsMember, GetBoardList, EditBoard, DeleteBoard } = require("./board_handler");
 const Board = require("../models/board_model");
-const { CreateList, EditList, MoveList } = require("./list_handler");
-const { CreateCard, EditCard, MoveCard } = require("./card_handler");
+const { CreateList, EditList, MoveList, DeleteList } = require("./list_handler");
+const { CreateCard, EditCard, MoveCard, DeleteCard } = require("./card_handler");
 
 class BoardManager {
   constructor() {
@@ -9,10 +9,31 @@ class BoardManager {
     this.boardSubscriptions = {};
   }
 
+  async subscribeToBoardSession(subscriber, userId, boardId, lastEdited) {
+    try {
+      const board = await Board.findById(boardId);
+      const cookieLastEdited = new Date(lastEdited).toString();
+      const isBoardUpToDate = board.last_edited.toString() == cookieLastEdited;
+
+      this.subscribeToBoard(subscriber, userId, boardId, !isBoardUpToDate);
+
+      if (isBoardUpToDate) {
+        const boardResponse = JSON.stringify({
+          response: 'BOARD_UP_TO_DATE',
+          time: Date.now()
+        });
+
+        subscriber.send(boardResponse);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   async subscribeToBoardList(subscriber, userId) {
     try {
       try {
-        const _subscriber = { ws: subscriber, userId, userId };
+        const _subscriber = { ws: subscriber, userId: userId };
 
         const ownedBoards = await GetBoardListAsOwner(userId);
         const memberBoards = await GetBoardListAsMember(userId);
@@ -52,7 +73,7 @@ class BoardManager {
     }
   }
 
-  async subscribeToBoard(subscriber, userId, boardId) {
+  async subscribeToBoard(subscriber, userId, boardId, sendBoard = true) {
     try {
       //const board = await GetBoard(boardId);
       //TODO Check om bruger er medlem, ejer eller admin
@@ -69,7 +90,9 @@ class BoardManager {
         this.boardSubscriptions[boardId].subscribers.push(subscriber);
       }
 
-      this.sendBoard(boardId, subscriber)
+      if (sendBoard) {
+        this.sendBoard(boardId, subscriber)
+      }
     } catch (error) {
       console.log(error);
     }
@@ -142,9 +165,41 @@ class BoardManager {
   async moveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, count = 0) {
     count++;
     await MoveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, (result) => {
-      console.log(result);
       if (!result.success && result.status == "DB" && count < 5) {
-        this.moveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex);
+        this.moveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, count);
+      } else {
+        this.sendBoard(boardId);
+      }
+    });
+  }
+
+  async deleteBoard(userId, boardId, count = 0) {
+    count++;
+    await DeleteBoard(boardId, userId, (result) => {
+      if (!result.success && result.status == "DB" && count < 5) {
+        this.deleteBoard(userId, boardId, count);
+      } else {
+        this.sendBoard(boardId);
+      }
+    });
+  }
+
+  async deleteCard(userId, boardId, cardId, count = 0) {
+    count++;
+    await DeleteCard(userId, boardId, cardId, (result) => {
+      if (!result.success && result.status == "DB" && count < 5) {
+        this.deleteCard(userId, boardId, cardId, count);
+      } else {
+        this.sendBoard(boardId);
+      }
+    });
+  }
+
+  async deleteList(userId, boardId, listId, count = 0) {
+    count++;
+    await DeleteList(userId, boardId, listId, (result) => {
+      if (!result.success && result.status == "DB" && count < 5) {
+        this.deleteList(userId, boardId, listId, count);
       } else {
         this.sendBoard(boardId);
       }

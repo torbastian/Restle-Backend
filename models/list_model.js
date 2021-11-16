@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 const Card = require("../models/card_model");
 const lockRelease = require('mongoose-lock-release');
 const Lock = require("../helpers/lock_model");
-
+const Board = require('../models/board_model');
+const mediator = require('../helpers/mediator');
 
 //Schemas
 var ListSchema = new mongoose.Schema({
@@ -33,23 +34,28 @@ var ListSchema = new mongoose.Schema({
 ListSchema.plugin(lockRelease, 'Lists');
 
 //pre 
-ListSchema.pre('save', { document : true }, async function() {
+ListSchema.pre('save', { document: true }, async function () {
     this.last_edited = Date.now();
-  });
+});
 
-ListSchema.pre('deleteOne', {document: true},  async function(){
-    Lock.LockModel(this, function(){
+ListSchema.pre('deleteOne', { document: true }, async function () {
+    Lock.LockModel(this, function () {
         this.cards.array.forEach(element => {
-            const card = Card.findOne({_id: element});
-            if(card){
+            const card = Card.findOne({ _id: element });
+            if (card) {
                 card.deleteOne();
             }
         });
     },
-    function(err, result){
+        function (err, result) {
 
-    });
+        });
 });
+
+// Post
+ListSchema.post('save', { document: true }, async function () {
+    mediator.emit('UpdateBoardLastEdited', this.board);
+})
 
 //Compiled model
 var ListModel = mongoose.model('Lists', ListSchema);

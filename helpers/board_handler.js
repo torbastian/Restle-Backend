@@ -3,7 +3,13 @@ const List = require("../models/list_model");
 const User = require("../models/user_model");
 const ListHandler = require("../helpers/list_handler");
 const Lock = require("./lock_model");
+const mediator = require('./mediator');
 const { OwnerAdminValidator } = require("./Permission_validator");
+
+mediator.on('UpdateBoardLastEdited', async function (boardId) {
+    console.log('UpdateBoardLastEdited');
+    await Board.findOneAndUpdate({ _id: boardId }, { last_edited: Date.now() });
+});
 
 async function GetBoardListAsOwner(board_owner) {
     try {
