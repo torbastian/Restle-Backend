@@ -106,14 +106,17 @@ async function DeleteList(user_id, board_id, list_id, callback) {
         await Lock.LockModel(list,
             function () {
                 Lock.LockModel(board,
-                    function () {
+                    async function () {
 
-                        cards = Card.find({list: list._id});
+                        cards = await Card.find({list: list._id});
 
                         cards.forEach(element => {
-                            CardHandler.DeleteCard(user_id, board_id, element._id, function(){
-                                
-                            });
+                            Lock.LockModel(element, function(){
+                                element.deleteOne();
+                            },
+                            function(err, result){
+
+                            })
                         });
 
                         const index = board.lists.indexOf(list._id);

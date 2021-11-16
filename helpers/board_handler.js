@@ -1,10 +1,12 @@
 const Board = require("../models/board_model");
 const List = require("../models/list_model");
 const User = require("../models/user_model");
+const Card = require("../models/card_model");
 const ListHandler = require("../helpers/list_handler");
 const Lock = require("./lock_model");
 const mediator = require('./mediator');
 const { OwnerAdminValidator } = require("./Permission_validator");
+const { findOne } = require("../models/user_model");
 
 mediator.on('UpdateBoardLastEdited', async function (boardId) {
     console.log('UpdateBoardLastEdited');
@@ -198,20 +200,27 @@ async function DeleteBoard(board_id, user_id, callback) {
                 lists = await List.find({
                     board: board._id
                 });
-                await lists.forEach(element => {
-                    Lock.LockModel(element, function(){
-                        ListHandler.DeleteList(user_id, board_id, element, function(){
-                            
-                        });
-                        return true;
-                    },
-                    function(err, result){
-                        if(err){
-                            callback(err);
-                        }
+                if(lists){ 
+                    lists.forEach(list => {
+                        Lock.LockModel(list, function(){
+                            list.deleteOne();
+                        },
+                        function(err, result){
+
+                        })
+                    })
+                }
+                cards = await Card.find({board: board._id});
+                if(cards){ 
+                    cards.forEach(card => {
+                        Lock.LockModel(card, function(){
+                            card.deleteOne();
+                        },
+                        function(err, result){
+
+                        })
                     });
-                });
-                console.log("HEJ Board SLETTET!");
+                }
                 board.deleteOne();
                 return true;
             },
