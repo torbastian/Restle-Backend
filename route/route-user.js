@@ -148,4 +148,13 @@ router.get('/findUser', ValidateToken, async (req, res) => {
   }
 });
 
+router.get('/getUsers', ValidateToken, async (req, res) => {
+  users = await User.find().limit(50);
+
+  if (!users) {
+    return res.status(400).send({ message: "no useres found" })
+  } else {
+    return res.status(200).send({users});
+  }
+});
 module.exports = router;

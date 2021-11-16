@@ -9,12 +9,10 @@ function compare(password, hashedPassword) {
 }
 
 function encrypt(string) {
-  console.log("ENCRYPT ER IKKE IMPLIMENTERET");
   return string;
 }
 
 function decrypt(string) {
-  console.log("DECRYPT ER IKKE IMPLIMENTERET");
   return string;
 }
 

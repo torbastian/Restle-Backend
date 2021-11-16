@@ -5,15 +5,12 @@ const jwt = require('jsonwebtoken');
 //check token agienst DB
 async function CheckToken(user_id, user_token){
   const token = await Token.findOne({$and:[{user: user_id}, {token: user_token}]});
-  console.log("checkToken = ", token);
   if(token){
-    console.log("checkToken token not null")
     return{
       success: true,
       message: "user id og token matcher database"
     }
   }else{
-    console.log("checkToken token null")
     return{
       success: false,
       message: "user id og token findes ikke i database"
@@ -25,13 +22,10 @@ async function CheckLoginToken(user_id, user_token){
   const check = await Token.findOne({user: user_id});
   
   if(!check){
-    console.log("CHECK LOGIN CHECK NULL");
     return await CreateToken(user_id, user_token);
   }else if(check.token != user_token){
-    console.log("CHECK LOGIN NEW TOKEN");
     return await UpdateToken(user_id, user_token);  
   }else{
-    console.log("CHECK LOGIN IS LOGIN");
     return{
       success: true,
       message: "user id og token matcher database"
@@ -43,7 +37,6 @@ async function CreateToken(user_id, user_token){
   const token = await Token.findOne({$or:[{user: user_id}, {token: user_token}]});
 
   if(token){
-    console.log("HEJ");
     return{
       success: false,
       message: "token eller bruger findes allerede i databasem"
@@ -89,8 +82,8 @@ async function UpdateToken(user_id, user_token){
 }
 
 async function ValidateToken(req, res, next) {
-  console.log("ValidateToken");
   const token = req.cookies.JWT;
+
   if (!token){
     return res.status(401).send({ message: 'Access Denied' });
   } 
@@ -102,15 +95,13 @@ async function ValidateToken(req, res, next) {
     const checkToken = await CheckToken(req.user._id, token);
 
     if (!checkToken.success) {
-      console.log("IM FICKED");
       res.clearCookie('JWT').status(400).send({ message: 'Database error. Token not saved' });
       return;
     }
 
     next();
   } catch (err) {
-    console.log("I AM ERROR ", err);
-    //res.status(400).send({ message: 'Invalid token' });
+    res.status(400).send({ message: 'Invalid token' });
   }
 }
 

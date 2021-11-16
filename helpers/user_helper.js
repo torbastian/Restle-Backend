@@ -4,14 +4,12 @@ const { hash, encrypt } = require('./crypt');
 const {UpdateToken, CreateToken, CheckLoginToken } = require('./token_handler');
 
 async function signUserToken(user, res) {
-  console.log("signUserToken");
   try {
 
     const seed = Date.now();
     const token = jwt.sign({ _id: user._id, seed: seed }, process.env.TOKEN_SECRET);
 
     const check = await CheckLoginToken(user._id, token);
-    console.log("signUserToken CHECK: ", check);
 
     res.cookie('JWT', token, {
       maxAge: 86_400_800,

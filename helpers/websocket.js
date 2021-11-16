@@ -36,13 +36,11 @@ function startWebscoketServer(server) {
     })
 
     ws.send(connectResponse);
-    console.log("i am userid: ", userId);
 
     //Foretage handlinger baseret på forespørgelsen der modtages
     ws.on('message', (data) => {
       const json = JSON.parse(data);
       const request = json.request;
-      console.log("", json);
 
       //Udfør operationer baseret på forespørgelsen
       switch (request) {
@@ -125,31 +123,17 @@ async function VerifyUserToken(ws, req) {
     }
 
     //TODO Hook up token handler
-
-    /*const verified = jwt.verify(token, process.env.TOKEN_SECRET, function(err, decoded){
-      console.log("I AM ERROR AGIEN: ", err);
-      console.log("I AM DECODED: ", decoded);
-    }); */
-
-
     const verified = jwt.verify(token, process.env.TOKEN_SECRET);
-    console.log("i am verifed: ", verified);
     req.user = verified;
-    console.log("i am req.user: ", req.user);
 
     const check = await CheckToken(verified._id, token);
-    console.log("i am check: ", check);
     if (!check.success) {
-      console.log("im closing!");
       return ws.close(1008, 'Access Denied');
     }
 
-
-    console.log("i am returning");
     return verified._id;
 
   } catch (err) {
-    console.log(err);
     return ws.close(1008, 'Invalid Token');
   }
 }
