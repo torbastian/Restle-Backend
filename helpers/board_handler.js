@@ -199,7 +199,9 @@ async function DeleteBoard(board_id, user_id, callback) {
                 });
                 lists.array.forEach(element => {
                     Lock.LockModel(element, function(){
-                        ListHandler.DeleteList(element._id);
+                        ListHandler.DeleteList(user_id, board._id, element, function(){
+                            
+                        });
                         return true;
                     },
                     function(err, result){
