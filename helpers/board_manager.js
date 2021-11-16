@@ -263,10 +263,14 @@ class BoardManager {
       if (!subscriptions) return;
 
       let board = await GetBoardList(boardId);
+
+      if (!board.success) return;
+
       board = board.object;
 
       subscriptions.forEach(sub => {
         if (board.owner._id == sub.userId) {
+          console.log('Board_list_update');
           const listUpdate = JSON.stringify({
             response: 'BOARD_LIST_UPDATE',
             time: Date.now(),
@@ -275,6 +279,7 @@ class BoardManager {
 
           sub.ws.send(listUpdate);
         } else {
+          console.log('Board_list_update');
           const listUpdate = JSON.stringify({
             response: 'BOARD_LIST_UPDATE',
             time: Date.now(),

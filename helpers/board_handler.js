@@ -83,11 +83,19 @@ async function GetBoardList(boardId) {
             })
             .select('-lists');
 
-        return {
-            sucess: true,
-            message: 'Board Fundet',
-            object: board
+        if (!board) {
+            return {
+                success: false,
+                message: 'Intet board fundet'
+            }
+        } else {
+            return {
+                success: true,
+                message: 'Board Fundet',
+                object: board
+            }
         }
+
 
     } catch (err) {
         return {
@@ -167,7 +175,7 @@ async function CreateBoard(user_id, title, owner, description, callback) {
     });
 
     try {
-        newBoard.save();
+        await newBoard.save();
         callback({
             success: true,
             message: "Board blev gemt.",
@@ -198,24 +206,24 @@ async function DeleteBoard(board_id, user_id, callback) {
                     board: board._id
                 });
                 await lists.forEach(element => {
-                    Lock.LockModel(element, function(){
-                        ListHandler.DeleteList(user_id, board_id, element, function(){
-                            
+                    Lock.LockModel(element, function () {
+                        ListHandler.DeleteList(user_id, board_id, element, function () {
+
                         });
                         return true;
                     },
-                    function(err, result){
-                        if(err){
-                            callback(err);
-                        }
-                    });
+                        function (err, result) {
+                            if (err) {
+                                callback(err);
+                            }
+                        });
                 });
                 console.log("HEJ Board SLETTET!");
                 board.deleteOne();
                 return true;
             },
             function (err, result) {
-                if(err){
+                if (err) {
                     callback(err);
                     return;
                 }
@@ -320,14 +328,14 @@ async function RemoveMember(user_id, board_id, member_id, callback) {
         }
 
         board = await Board.findOne({ _id: board_id });
-            Lock.LockModel(board,
+        Lock.LockModel(board,
             function () {
                 if (board.members.includes(member_id)) {
                     lists = List.find({
                         board: board._id
                     });
 
-                    if(lists){
+                    if (lists) {
                         lists.forEach(element => {
                             ListHandler.DeleteList(element._id);
                         });
@@ -421,7 +429,7 @@ async function AddBoardList(user_id, board_id, list_id, callback) {
                 }
             },
             function (err, result) {
-                if(err){
+                if (err) {
                     callback(err);
                 }
                 if (list) {
@@ -433,11 +441,11 @@ async function AddBoardList(user_id, board_id, list_id, callback) {
 
                         },
                         function (err, result2) {
-                            if(err){
+                            if (err) {
                                 callback(err);
                                 return;
                             }
-                            if(board){
+                            if (board) {
                                 callback({
                                     success: true,
                                     message: "Liste er blevet tilføjet til boardet.",
