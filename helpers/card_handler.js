@@ -3,6 +3,7 @@ const List = require("../models/list_model");
 const Lock = require("./lock_model");
 const Board = require('../models/board_model');
 const User = require('../models/user_model');
+const { encrypt } = require('./crypt');
 const { OwnerAdminValidator, MemberValidator } = require("./Permission_validator");
 
 async function GetCards(board_id) {
@@ -54,8 +55,8 @@ async function CreateCard(user_id, board_id, list_id, title, description, callba
         list: list_id,
         created_date: Date.now(),
         last_edited: Date.now(),
-        title: title,
-        description: description,
+        title: encrypt(title),
+        description: encrypt(description),
         members: []
     });
 

@@ -4,157 +4,14 @@ const User = require("../models/user_model");
 const Card = require("../models/card_model");
 const ListHandler = require("../helpers/list_handler");
 const Lock = require("./lock_model");
+const { encrypt, decrypt } = require('../helpers/crypt');
 const mediator = require('./mediator');
-const { OwnerAdminValidator, AdminValidator } = require("./Permission_validator");
+const { OwnerAdminValidator } = require("./Permission_validator");
 const { findOne } = require("../models/user_model");
 
 mediator.on('UpdateBoardLastEdited', async function (boardId) {
     await Board.findOneAndUpdate({ _id: boardId }, { last_edited: Date.now() });
 });
-
-async function GetAdminBoardOverview(userId, query, callback) {
-
-    const valid = AdminValidator(userId);
-    if (!valid) {
-        callback({
-            success: false,
-            message: 'Bruger er ikke admin'
-        })
-        return;
-    }
-
-    console.log('QUERY', query);
-
-    var page = 1;
-    var limit = 10;
-    var sort = 'last_edited';
-    var order = -1;
-
-    if (query?.page != undefined) {
-        page = query.page;
-    }
-
-    if (query?.limit != undefined) {
-        limit = query.limit;
-    }
-
-    if (query?.sort != undefined) {
-        sort = query.sort;
-    }
-
-    if (query?.order != undefined) {
-        order = query.order;
-    }
-
-    //Term er om der bliver søgt på title, ejer, eller medlem
-    //Search er hvad selve søgningen inkludere
-    const validSearch = query?.term && query?.search && query?.term != '' && query?.search != '';
-
-    try {
-        var boards = null;
-        var count = null;
-
-        if (validSearch) {
-            switch (query.term) {
-                case 'owner':
-                    boards = await Board.find()
-                        .sort({ [sort]: order })
-                        .populate({
-                            path: 'members',
-                            select: 'username create_date first_name last_name colour email'
-                        })
-                        .populate({
-                            path: 'owner',
-                            select: 'username create_date first_name last_name colour email',
-                            match: {
-                                $or: [{ first_name: { $regex: '.*' + query.search + '.*', $options: 'i' } },
-                                { email: { $regex: '.*' + query.search + '.*', $options: 'i' } }]
-                            }
-                        })
-                        .limit(limit * 1)
-                        .skip((page - 1) * limit)
-                        .exec();
-                    break;
-                case 'member':
-                    boards = await Board.find()
-                        .sort({ [sort]: order })
-                        .populate({
-                            path: 'members',
-                            select: 'username create_date first_name last_name colour email',
-                            match: {
-                                $or: [{ first_name: { $regex: '.*' + query.search + '.*', $options: 'i' } },
-                                { email: { $regex: '.*' + query.search + '.*', $options: 'i' } }]
-                            }
-                        })
-                        .populate({
-                            path: 'owner',
-                            select: 'username create_date first_name last_name colour email'
-                        })
-                        .limit(limit * 1)
-                        .skip((page - 1) * limit)
-                        .exec();
-                    break;
-                case 'title':
-                    boards = await Board.find({ $or: [{ title: { $regex: '.*' + query.search + '.*', $options: 'i' } }] })
-                        .sort({ [sort]: order })
-                        .populate({
-                            path: 'members',
-                            select: 'username create_date first_name last_name colour email',
-                        })
-                        .populate({
-                            path: 'owner',
-                            select: 'username create_date first_name last_name colour email'
-                        })
-                        .limit(limit * 1)
-                        .skip((page - 1) * limit)
-                        .exec();
-                    break;
-                default:
-                    break;
-            }
-
-            count = boards.length;
-
-        } else {
-            boards = await Board.find()
-                .sort({ [sort]: order })
-                .limit(limit * 1)
-                .skip((page - 1) * limit)
-                .populate({
-                    path: 'members',
-                    select: 'username create_date first_name last_name colour email'
-                })
-                .populate({
-                    path: 'owner',
-                    select: 'username create_date first_name last_name colour email'
-                })
-                .exec();
-
-            count = await Board.countDocuments();
-        }
-
-        //TODO Decrypt 
-
-        callback({
-            success: true,
-            message: 'Board fundet',
-            object: {
-                boards: boards,
-                totalPages: Math.ceil(count / limit),
-                currentPage: page
-            }
-        })
-
-    } catch (err) {
-        console.log(err);
-        callback({
-            success: false,
-            message: 'Noget gik galdt da vi forsøgte at finde boards. ' + err
-        })
-    }
-
-    await Board.find()
-}
 
 async function GetBoardListAsOwner(board_owner) {
     try {
@@ -169,6 +26,7 @@ async function GetBoardListAsOwner(board_owner) {
                 select: 'username create_date first_name last_name colour'
             })
             .select('-lists').then(boards => {
+                console.log("TEST GetBoardListAsOwner");
                 return {
                     success: true,
                     message: "vi fandt " + boards.length + " som du er ejer af",
@@ -201,6 +59,7 @@ async function GetBoardListAsMember(member_id) {
                 select: 'username create_date first_name last_name colour'
             })
             .select('-lists').then(boards => {
+                console.log("TEST GetBoardListAsMember");
                 return {
                     success: true,
                     message: "vi fandt " + boards.length + " som du er medlem af",
@@ -227,6 +86,10 @@ async function GetBoardList(boardId) {
                 select: 'username create_date first_name last_name colour'
             })
             .select('-lists');
+
+            board.title = decrypt(board.title);
+            board.description = decrypt(board.description);
+            console.log("TEST GetBoardList");
 
         if (!board) {
             return {
@@ -274,6 +137,7 @@ async function GetBoard(boardId) {
                 }
             });
 
+
         if (!board) {
             return {
                 success: false,
@@ -312,11 +176,11 @@ async function CreateBoard(user_id, title, owner, description, callback) {
     const newBoard = new Board({
         create_date: Date.now(),
         last_edited: Date.now(),
-        title: title,
+        title: encrypt(title),
         owner: owner,
         members: [],
         lists: [],
-        description: description
+        description: encrypt(description)
     });
 
     try {
@@ -409,8 +273,8 @@ async function EditBoard(user_id, board_id, title, description, callback) {
         board = await Board.findOne({ _id: board_id });
         Lock.LockModel(board,
             function () {
-                board.title = title;
-                board.description = description;
+                board.title = encrypt(title);
+                board.description = encrypt(description);
                 board.save();
                 return true;
             },
@@ -680,4 +544,3 @@ exports.AddBoardList = AddBoardList;
 exports.RemoveList = RemoveList;
 exports.GetBoard = GetBoard;
 exports.GetBoardList = GetBoardList;
-exports.GetAdminBoardOverview = GetAdminBoardOverview;

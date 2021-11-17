@@ -2,6 +2,7 @@ const { CreateBoard, GetBoard, GetBoardListAsOwner, GetBoardListAsMember, GetBoa
 const Board = require("../models/board_model");
 const { CreateList, EditList, MoveList, DeleteList } = require("./list_handler");
 const { CreateCard, EditCard, MoveCard, DeleteCard } = require("./card_handler");
+const { decrypt, decryptBoard } = require('./crypt');
 
 class BoardManager {
   constructor() {
@@ -275,6 +276,7 @@ class BoardManager {
 
       let board = await GetBoardList(boardId);
 
+
       if (!board.success) return;
 
       board = board.object;
@@ -304,12 +306,22 @@ class BoardManager {
   }
 
   async sendBoardListToSubscriber(subscriber, owned, memberOf) {
+    
+   
+      owned.forEach(board => {
+			board = decryptBoard(board);
+		});
+    
+    
     const listPackage = JSON.stringify({
       response: 'BOARD_LIST_RESPONSE',
       time: Date.now(),
       owned: owned,
       memberOf: memberOf
     });
+
+
+    
 
     subscriber.send(listPackage);
   }
@@ -320,6 +332,10 @@ class BoardManager {
       if (!this.boardSubscriptions[boardId]) return;
 
       await GetBoard(boardId).then(result => {
+        
+        console.log("SENDBOARD");
+
+        
 
         //Send et board til en specefik bruger, eller alle brugere ud fra om subscriber er null eller ej
         this.boardSubscriptions[boardId].subscribers.forEach(sub => {
@@ -330,6 +346,7 @@ class BoardManager {
               result: result
             }));
           } else if ((subscriber && sub === subscriber) || !subscriber) {
+            result.object = decryptBoard(result.object);
             sub.send(JSON.stringify({
               response: 'BOARD_RESPONSE',
               time: Date.now(),

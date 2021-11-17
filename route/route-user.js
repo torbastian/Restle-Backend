@@ -35,10 +35,9 @@ router.post('/register', async (req, res) => {
 //Login
 router.post('/login', async (req, res) => {
 
-  console.log("login");
+  
   //Checker om brugerens credentials er valid
   const { error } = loginValidation(req.body);
-  console.log("err ", error)
   if (error) {
     return res.status(400).send({ message: error.details[0].message });
   }
@@ -46,7 +45,7 @@ router.post('/login', async (req, res) => {
   //Gemmer brugeren med det indtastet brugernavn
   const user = await User.findOne({ username: req.body.username });
 
-  console.log("user ", user);
+  
   //Udskriver fejl hvis brugeren ikke findes
   if (user == null) {
     return res.status(400).send({ message: "Username or password is invalid" });
@@ -147,6 +146,10 @@ router.get('/findUser', ValidateToken, async (req, res) => {
   users = await User.find({ $or: [{ first_name: { $regex: '.*' + req.query.search + '.*', $options: 'i' }}, { email: { $regex: '.*' + req.query.search + '.*', $options: 'i' } }] }
     , ['_id', 'first_name', 'last_name', 'email', 'colour']);
 
+    users.forEach(function(user) {
+      user.last_name = decrypt(user.last_name);
+  });
+
   if (!users) {
     return res.status(400).send({ message: "no useres found" })
   } else {
@@ -156,6 +159,12 @@ router.get('/findUser', ValidateToken, async (req, res) => {
 
 router.get('/getUsers', ValidateToken, async (req, res) => {
   users = await User.find().limit(50);
+ 
+
+  users.forEach(function(user) {
+    user.last_name = decrypt(user.last_name);
+});
+
 
   if (!users) {
     return res.status(400).send({ message: "no useres found" })

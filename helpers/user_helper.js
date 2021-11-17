@@ -1,18 +1,18 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user_model');
-const { hash, encrypt } = require('./crypt');
+const { hash, encrypt, decrypt } = require('./crypt');
 const {UpdateToken, CreateToken, CheckLoginToken } = require('./token_handler');
 
 async function signUserToken(user, res) {
   try {
-    console.log("signUserToken");
+    
     const seed = Date.now();
     const token = jwt.sign({ _id: user._id, seed: seed }, process.env.TOKEN_SECRET);
 
-    console.log("token ", token)
+    
     const check = await CheckLoginToken(user._id, token);
 
-    console.log("check ", check);
+    
     res.cookie('JWT', token, {
       maxAge: 86_400_800,
       httpOnly: true,
@@ -29,13 +29,13 @@ function getUserInfo(user) {
     username: user.username,
     create_date: user.create_date,
     first_name: user.first_name,
-    last_name: user.last_name,
+    last_name: decrypt(user.last_name),
     email: user.email,
     colour: user.colour,
     isAdmin: user.isAdmin
   });
 
-  console.log("getUserInfo ", stuff)
+  
 
   return stuff;
 }

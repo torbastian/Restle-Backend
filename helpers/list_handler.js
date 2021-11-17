@@ -3,6 +3,7 @@ const CardHandler = require("../helpers/card_handler");
 const List = require("../models/list_model");
 const Board = require('../models/board_model');
 const Lock = require('../helpers/lock_model');
+const { encrypt } = require('./crypt');
 const { OwnerAdminValidator } = require("./Permission_validator");
 
 async function GetLists(board_id) {
@@ -46,7 +47,7 @@ async function CreateList(user_id, board_id, title, callback) {
 
     const newList = new List({
         board: board_id,
-        title: title,
+        title: encrypt(title),
         cards: [],
         created_date: Date.now(),
         last_edited: Date.now(),
