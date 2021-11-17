@@ -6,7 +6,7 @@ const ListHandler = require("../helpers/list_handler");
 const Lock = require("./lock_model");
 const { encrypt, decrypt } = require('../helpers/crypt');
 const mediator = require('./mediator');
-const { OwnerAdminValidator } = require("./Permission_validator");
+const { OwnerAdminValidator, AdminValidator } = require("./Permission_validator");
 const { findOne } = require("../models/user_model");
 
 mediator.on('UpdateBoardLastEdited', async function (boardId) {
@@ -134,7 +134,11 @@ async function GetAdminBoardOverview(userId, query, callback) {
             count = await Board.countDocuments();
         }
 
-        //TODO Decrypt 
+        
+        boards.forEach(board => {
+			board.title = decrypt(board.title);
+            board.description = decrypt(board.description);
+		});
 
         callback({
             success: true,
