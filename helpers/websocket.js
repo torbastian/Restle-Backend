@@ -86,6 +86,9 @@ function startWebscoketServer(server) {
         case 'DELETE_CARD':
           boardManager.deleteCard(userId, json.boardId, json.cardId);
           break;
+        case 'GET_ADMIN_BOARD_OVERVIEW':
+          boardManager.getAdminBoardOverview(userId, json.query, ws);
+          break;
         default:
           break;
       }

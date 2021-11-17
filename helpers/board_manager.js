@@ -1,4 +1,4 @@
-const { CreateBoard, GetBoard, GetBoardListAsOwner, GetBoardListAsMember, GetBoardList, EditBoard, DeleteBoard } = require("./board_handler");
+const { CreateBoard, GetBoard, GetBoardListAsOwner, GetBoardListAsMember, GetBoardList, EditBoard, DeleteBoard, GetAdminBoardOverview } = require("./board_handler");
 const Board = require("../models/board_model");
 const { CreateList, EditList, MoveList, DeleteList } = require("./list_handler");
 const { CreateCard, EditCard, MoveCard, DeleteCard } = require("./card_handler");
@@ -131,6 +131,20 @@ class BoardManager {
     } catch (error) {
       console.log(error);
     }
+  }
+
+  async getAdminBoardOverview(userId, query, ws) {
+    await GetAdminBoardOverview(userId, query, (result) => {
+      if (result.success) {
+        const response = JSON.stringify({
+          response: 'ADMIN_BOARD_RESPONSE',
+          time: Date.now(),
+          result: result.object
+        });
+
+        ws.send(response);
+      }
+    })
   }
 
   async createNewBoard(ws, userId, details) {
