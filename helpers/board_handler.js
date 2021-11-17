@@ -13,6 +13,148 @@ mediator.on('UpdateBoardLastEdited', async function (boardId) {
     await Board.findOneAndUpdate({ _id: boardId }, { last_edited: Date.now() });
 });
 
+async function GetAdminBoardOverview(userId, query, callback) {
+
+    const valid = AdminValidator(userId);
+    if (!valid) {
+        callback({
+            success: false,
+            message: 'Bruger er ikke admin'
+        })
+        return;
+    }
+
+    console.log('QUERY', query);
+
+    var page = 1;
+    var limit = 10;
+    var sort = 'last_edited';
+    var order = -1;
+
+    if (query?.page != undefined) {
+        page = query.page;
+    }
+
+    if (query?.limit != undefined) {
+        limit = query.limit;
+    }
+
+    if (query?.sort != undefined) {
+        sort = query.sort;
+    }
+
+    if (query?.order != undefined) {
+        order = query.order;
+    }
+
+    //Term er om der bliver søgt på title, ejer, eller medlem
+    //Search er hvad selve søgningen inkludere
+    const validSearch = query?.term && query?.search && query?.term != '' && query?.search != '';
+
+    try {
+        var boards = null;
+        var count = null;
+
+        if (validSearch) {
+            switch (query.term) {
+                case 'owner':
+                    boards = await Board.find()
+                        .sort({ [sort]: order })
+                        .populate({
+                            path: 'members',
+                            select: 'username create_date first_name last_name colour email'
+                        })
+                        .populate({
+                            path: 'owner',
+                            select: 'username create_date first_name last_name colour email',
+                            match: {
+                                $or: [{ first_name: { $regex: '.*' + query.search + '.*', $options: 'i' } },
+                                { email: { $regex: '.*' + query.search + '.*', $options: 'i' } }]
+                            }
+                        })
+                        .limit(limit * 1)
+                        .skip((page - 1) * limit)
+                        .exec();
+                    break;
+                case 'member':
+                    boards = await Board.find()
+                        .sort({ [sort]: order })
+                        .populate({
+                            path: 'members',
+                            select: 'username create_date first_name last_name colour email',
+                            match: {
+                                $or: [{ first_name: { $regex: '.*' + query.search + '.*', $options: 'i' } },
+                                { email: { $regex: '.*' + query.search + '.*', $options: 'i' } }]
+                            }
+                        })
+                        .populate({
+                            path: 'owner',
+                            select: 'username create_date first_name last_name colour email'
+                        })
+                        .limit(limit * 1)
+                        .skip((page - 1) * limit)
+                        .exec();
+                    break;
+                case 'title':
+                    boards = await Board.find({ $or: [{ title: { $regex: '.*' + query.search + '.*', $options: 'i' } }] })
+                        .sort({ [sort]: order })
+                        .populate({
+                            path: 'members',
+                            select: 'username create_date first_name last_name colour email',
+                        })
+                        .populate({
+                            path: 'owner',
+                            select: 'username create_date first_name last_name colour email'
+                        })
+                        .limit(limit * 1)
+                        .skip((page - 1) * limit)
+                        .exec();
+                    break;
+                default:
+                    break;
+            }
+
+            count = boards.length;
+
+        } else {
+            boards = await Board.find()
+                .sort({ [sort]: order })
+                .limit(limit * 1)
+                .skip((page - 1) * limit)
+                .populate({
+                    path: 'members',
+                    select: 'username create_date first_name last_name colour email'
+                })
+                .populate({
+                    path: 'owner',
+                    select: 'username create_date first_name last_name colour email'
+                })
+                .exec();
+
+            count = await Board.countDocuments();
+        }
+
+        //TODO Decrypt 
+
+        callback({
+            success: true,
+            message: 'Board fundet',
+            object: {
+                boards: boards,
+                totalPages: Math.ceil(count / limit),
+                currentPage: page
+            }
+        })
+
+    } catch (err) {
+        console.log(err);
+        callback({
+            success: false,
+            message: 'Noget gik galdt da vi forsøgte at finde boards. ' + err
+        })
+    }
+}
+
 async function GetBoardListAsOwner(board_owner) {
     try {
         return await Board.find({ owner: board_owner })
