@@ -26,8 +26,6 @@ function startWebscoketServer(server) {
 
   //Når en bruger forbindes til serveren
   wss.on('connection', async (ws, req) => {
-    console.log("WS ", ws);
-    console.log("req ", req);
     //Verificer bruger token
     const userId = await VerifyUserToken(ws, req);
 
