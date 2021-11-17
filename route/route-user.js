@@ -35,8 +35,10 @@ router.post('/register', async (req, res) => {
 //Login
 router.post('/login', async (req, res) => {
 
+  console.log("login");
   //Checker om brugerens credentials er valid
   const { error } = loginValidation(req.body);
+  console.log("err ", error)
   if (error) {
     return res.status(400).send({ message: error.details[0].message });
   }
@@ -44,6 +46,7 @@ router.post('/login', async (req, res) => {
   //Gemmer brugeren med det indtastet brugernavn
   const user = await User.findOne({ username: req.body.username });
 
+  console.log("user ", user);
   //Udskriver fejl hvis brugeren ikke findes
   if (user == null) {
     return res.status(400).send({ message: "Username or password is invalid" });
@@ -52,15 +55,18 @@ router.post('/login', async (req, res) => {
   try {
     //Hvis brugeren har indtastet deres password korrekt får de angivet et JSON web token.
     if (compare(req.body.password, user.password)) {
+      console.log("compare true");
       signUserToken(user, res);
     }
     //Hvis brugeren har indtastet deres password forkert
     else {
+      console.log("compare false");
       res.status(400).send({ message: "Username or password is invalid" });
     }
   }
   //Catch status ved fejl
   catch {
+    console.log("login crash");
     res.status(500).send();
   }
 });
