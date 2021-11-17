@@ -686,3 +686,4 @@ exports.AddBoardList = AddBoardList;
 exports.RemoveList = RemoveList;
 exports.GetBoard = GetBoard;
 exports.GetBoardList = GetBoardList;
+exports.GetAdminBoardOverview = GetAdminBoardOverview;
