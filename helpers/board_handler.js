@@ -152,8 +152,6 @@ async function GetAdminBoardOverview(userId, query, callback) {
             message: 'Noget gik galdt da vi forsøgte at finde boards. ' + err
         })
     }
-
-    await Board.find()
 }
 
 async function GetBoardListAsOwner(board_owner) {
