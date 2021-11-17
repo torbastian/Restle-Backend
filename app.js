@@ -7,7 +7,6 @@ const app = express();
 
 //Importer routes
 const userRoute = require('./route/route-user');
-const boardRoute = require('./route/route-board');
 const { startWebscoketServer } = require('./helpers/websocket');
 const { CreateBoard } = require('./helpers/board_handler');
 
@@ -22,7 +21,6 @@ app.get('/', (req, res) => {
 });
 
 app.use('/user', userRoute);
-app.use('/board', boardRoute);
 
 console.log(process.env.DB_CONNECTION);
 
