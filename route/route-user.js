@@ -139,12 +139,12 @@ router.get('/logout', async (req, res) => {
   res.clearCookie('JWT').send();
 });
 
-router.post('/AdminOverview', async (req, res) => {
+router.post('/AdminOverview', ValidateToken, async (req, res) => {
   // GET DATA!
 });
 
 router.get('/findUser', ValidateToken, async (req, res) => {
-  users = await User.find({ $or: [{ first_name: { $regex: '.*' + req.query.search + '.*' } }, { email: { $regex: '.*' + req.query.search + '.*' } }] }
+  users = await User.find({ $or: [{ first_name: { $regex: '.*' + req.query.search + '.*', $options: 'i' }}, { email: { $regex: '.*' + req.query.search + '.*', $options: 'i' } }] }
     , ['_id', 'first_name', 'last_name', 'email', 'colour']);
 
   if (!users) {

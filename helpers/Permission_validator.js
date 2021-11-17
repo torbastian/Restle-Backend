@@ -22,7 +22,8 @@ async function AdminValidator(user_id) {
 
     return isAdmin(user);
   } catch (err) {
-    throw new Error("owner eller admin validator fejlede");
+    console.log("owner eller admin validator fejlede");
+    return false;
   }
 }
 
