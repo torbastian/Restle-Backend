@@ -12,7 +12,7 @@ function SendEmailReset(reciver, mailLink){
         from: 'restlehej@gmail.com',
         to: reciver,
         subject: 'Password reset',
-        text: 'That was easy!' + mailLink
+        html: '<a href="http://' + mailLink + '">reset password</a>'
       };
       
       transporter.sendMail(mailOptions, function(error, info){
