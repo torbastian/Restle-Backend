@@ -5,14 +5,11 @@ const {UpdateToken, CreateToken, CheckLoginToken } = require('./token_handler');
 
 async function signUserToken(user, res) {
   try {
-    
     const seed = Date.now();
     const token = jwt.sign({ _id: user._id, seed: seed }, process.env.TOKEN_SECRET);
 
-    
     const check = await CheckLoginToken(user._id, token);
 
-    
     res.cookie('JWT', token, {
       maxAge: 86_400_800,
       httpOnly: true,
@@ -24,7 +21,7 @@ async function signUserToken(user, res) {
 }
 
 function getUserInfo(user) {
-  stuff = JSON.stringify({
+  return JSON.stringify({
     _id: user._id,
     username: user.username,
     create_date: user.create_date,
@@ -34,10 +31,6 @@ function getUserInfo(user) {
     colour: user.colour,
     isAdmin: user.isAdmin
   });
-
-  
-
-  return stuff;
 }
 
 function newUser(reqUser) {
