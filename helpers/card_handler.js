@@ -242,6 +242,49 @@ async function RemoveMember(user_id, board_id, card_id, member_id, callback) {
         });
     }
 }
+async function RemoveMembers(user_id, board_id, card_id, member_id, callback) {
+    const valid = await OwnerAdminValidator(user_id, board_id)
+    if (!valid) {
+        callback({
+            success: false,
+            message: "kun admins eller board ejer kan fjerne kort fra listen"
+        });
+        return;
+    }
+
+    if(Array.isArray(member_id)){
+        callback({
+            success: false,
+            message: "member_id is not a array"
+            });
+    }
+    try {
+        
+        const cards = await Card.find({members: {$in : [member_id]}});
+
+        for(let i = 0; i < cards.length; i++){
+            for(let x = 0; x < member_id.lenght; x++){
+                const index = cards[i].members.indexOf(member_id[x]);
+                if(index >= 0){
+                    cards[i].members.splice(index, 1);
+                }
+            }
+            Lock.LockModel(cards[i],
+                function(){
+                    cards[i].save();
+                },
+                function(err, result){
+
+                })
+        }
+        
+    } catch (err) {
+        callback({
+            success: false,
+            message: "noget gik galt da vi forsøgte at fjerne medlem fra kort. " + err
+        });
+    }
+}
 
 async function MoveCard(user_id, board_id, card_to_move_id, old_list_id, new_list_id, destination_index, callback) {
     const valid = await MemberValidator(user_id, board_id);
@@ -397,3 +440,4 @@ exports.RemoveMember = RemoveMember;
 exports.EditCard = EditCard;
 exports.GetCards = GetCards;
 exports.MoveCard = MoveCard;
+exports.RemoveMembers = RemoveMembers;
