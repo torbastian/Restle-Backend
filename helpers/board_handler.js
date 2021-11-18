@@ -601,10 +601,6 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
                         if (index >= 0) {
                             cards[i].members.splice(index, 1);
                        }
-                       const boardIndex = board.members.indexOf(member_id[x]);
-                       if(boardIndex >= 0){
-                           board.members.splice(boardIndex, 1);
-                       }
                    }
                    Lock.LockModel(cards[i],
                     function(){
@@ -614,6 +610,12 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
 
                         });
                 }
+                for (let y = 0; y < member_id.length; y++) {
+                   const boardIndex = board.members.indexOf(member_id[y]);
+                   if(boardIndex >= 0){
+                       board.members.splice(boardIndex, 1);
+                   }
+               }
                 board.save();
             },
             function (err, result) {
