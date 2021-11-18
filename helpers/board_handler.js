@@ -592,32 +592,22 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
         for (let i = 0; i < lists.length; i++) {
             await cards.push(Card.find({ list: lists[i] }));
         }
-        cards = await Card.find()
         Lock.LockModel(board,
             function () {
-                for (let i = 0; i < member_id.length; i++) {
-                    if (board.members.includes(member_id[i])) {
-                        for (let x = 0; i < cards.length; x++) {
-                            Lock.LockModel(cards[x], function () {
-                                if (cards[x].members.includes(member_id[i])) {
-                                    const index = cards[x].members.indexOf(member_id[i]);
-                                    cards[x].members.splice(index, 1);
-                                    cards[x].save();
-                                }
-                            },
-                                function (err, result) {
-                                    if (err) {
-                                        console.log(err);
-                                    }
-                                });
-                        }
+                for (let i = 0; i < cards.length; i++) {
+                   for(let x = 0; x < member_id.length; x++){
+                       const index = cards[i].members.indexOf(member_id[x]);
+                        if(index >= 0){
+                            cards[i].members.splice(index, 1);
+                       }
+                   }
+                   Lock.LockModel(cards[i],
+                    function(){
+                        cards[i].save();
+                    },
+                    function(err, result){
 
-
-                        const index = board.members.indexOf(element);
-                        board.members.splice(index, 1);
-                        board.save();
-                        return true;
-                    }
+                    });
                 }
             },
             function (err, result) {
