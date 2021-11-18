@@ -315,7 +315,6 @@ class BoardManager {
 
       let board = await GetBoardList(boardId);
 
-
       if (!board.success) return;
 
       board = board.object;
@@ -345,22 +344,16 @@ class BoardManager {
   }
 
   async sendBoardListToSubscriber(subscriber, owned, memberOf) {
-    
-   
-      owned.forEach(board => {
-			board = decryptBoard(board);
-		});
-    
-    
+    owned.forEach(board => {
+      board = decryptBoard(board);
+    });
+
     const listPackage = JSON.stringify({
       response: 'BOARD_LIST_RESPONSE',
       time: Date.now(),
       owned: owned,
       memberOf: memberOf
     });
-
-
-    
 
     subscriber.send(listPackage);
   }
@@ -371,10 +364,8 @@ class BoardManager {
       if (!this.boardSubscriptions[boardId]) return;
 
       await GetBoard(boardId).then(result => {
-        
-        console.log("SENDBOARD");
 
-        
+        console.log("SENDBOARD");
 
         //Send et board til en specefik bruger, eller alle brugere ud fra om subscriber er null eller ej
         this.boardSubscriptions[boardId].subscribers.forEach(sub => {

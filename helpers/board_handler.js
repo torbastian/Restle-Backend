@@ -169,11 +169,11 @@ async function GetAdminBoardOverview(userId, query, callback) {
             count = await Board.countDocuments();
         }
 
-        
+
         boards.forEach(board => {
-			board.title = decrypt(board.title);
+            board.title = decrypt(board.title);
             board.description = decrypt(board.description);
-		});
+        });
 
         callback({
             success: true,
@@ -268,9 +268,9 @@ async function GetBoardList(boardId) {
             })
             .select('-lists');
 
-            board.title = decrypt(board.title);
-            board.description = decrypt(board.description);
-            console.log("TEST GetBoardList");
+        board.title = decrypt(board.title);
+        board.description = decrypt(board.description);
+        console.log("TEST GetBoardList");
 
         if (!board) {
             return {
@@ -577,7 +577,7 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
             });
         }
 
-        if(!member_id.isArray()){
+        if (!member_id.isArray()) {
             callback({
                 success: false,
                 message: "member_id is not an array"
@@ -589,30 +589,30 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
             board: board._id
         });
         cards = [];
-        for(let i = 0; i<lists.length; i++){
-            await cards.push(Card.find({list: lists[i]}));
+        for (let i = 0; i < lists.length; i++) {
+            await cards.push(Card.find({ list: lists[i] }));
         }
         cards = await Card.find()
         Lock.LockModel(board,
             function () {
-                for(let i = 0; i < member_id.length; i++){
+                for (let i = 0; i < member_id.length; i++) {
                     if (board.members.includes(member_id[i])) {
-                        for(let x = 0; i < cards.length; x++){
-                            Lock.LockModel(cards[x], function(){
-                                if(cards[x].members.includes(member_id[i])){
+                        for (let x = 0; i < cards.length; x++) {
+                            Lock.LockModel(cards[x], function () {
+                                if (cards[x].members.includes(member_id[i])) {
                                     const index = cards[x].members.indexOf(member_id[i]);
                                     cards[x].members.splice(index, 1);
                                     cards[x].save();
                                 }
                             },
-                            function(err, result){
-                                if(err){
-                                    console.log(err);
-                                }
-                            });
+                                function (err, result) {
+                                    if (err) {
+                                        console.log(err);
+                                    }
+                                });
                         }
-                        
-    
+
+
                         const index = board.members.indexOf(element);
                         board.members.splice(index, 1);
                         board.save();
@@ -621,7 +621,7 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
                 }
             },
             function (err, result) {
-                if(err){
+                if (err) {
                     callback(err);
                     return
                 }
@@ -652,9 +652,29 @@ async function ChangeOwner(user_id, board_id, owner_id, callback) {
             });
         }
 
-        board = await Board.findOne({ _id: board_id });
+        const user = await User.findOne({ _id: new_owner_id });
+
+        if (!user) {
+            callback({
+                success: false,
+                message: 'Bruger kunne ikke findes'
+            });
+        }
+
+        const board = await Board.findOne({ _id: board_id });
+
+        if (!board) {
+            callback({
+                success: false,
+                message: 'Board kunne ikke findes'
+            });
+        }
+
         result = Lock.LockModel(board,
             function () {
+
+
+
                 board.owner = owner_id;
                 board.save();
                 return true;
