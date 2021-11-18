@@ -322,7 +322,7 @@ async function CreateBoard(user_id, title, owner, description, callback) {
     const newBoard = new Board({
         create_date: Date.now(),
         last_edited: Date.now(),
-        title: encrypt(title),
+        title: title,
         owner: owner,
         members: [],
         lists: [],
