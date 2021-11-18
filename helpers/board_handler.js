@@ -575,11 +575,12 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
             });
         }
 
-        if (!member_id.isArray()) {
+        if (!Array.isArray(member_id)) {
             callback({
                 success: false,
                 message: "member_id is not an array"
             })
+            return;
         }
 
         board = await Board.findOne({ _id: board_id });
@@ -596,6 +597,10 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
                         if(index >= 0){
                             cards[i].members.splice(index, 1);
                        }
+                       const boardIndex = board.members.indexOf(member_id[x]);
+                       if(boardIndex >= 0){
+                           board.members.splice(boardIndex, 1);
+                       }
                    }
                    Lock.LockModel(cards[i],
                     function(){
@@ -605,6 +610,7 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
 
                     });
                 }
+                board.save();
             },
             function (err, result) {
                 if (err) {
