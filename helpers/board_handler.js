@@ -283,7 +283,6 @@ async function GetBoard(boardId) {
                 }
             });
 
-
         if (!board) {
             return {
                 success: false,
