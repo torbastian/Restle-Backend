@@ -588,10 +588,8 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
         lists = await List.find({
             board: board._id
         });
-        cards = [];
-        for (let i = 0; i < lists.length; i++) {
-            await cards.push(Card.find({ list: lists[i] }));
-        }
+        
+        const cards = await Card.find({$and: [{members: {$in: [member_id]}}, {board: board_id}]});
         Lock.LockModel(board,
             function () {
                 for (let i = 0; i < cards.length; i++) {
