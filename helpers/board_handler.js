@@ -548,15 +548,29 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
             board: board._id
         });
         cards = [];
-        for(let i; i<lists.length; i++){
+        for(let i = 0; i<lists.length; i++){
             await cards.push(Card.find({list: lists[i]}));
         }
         cards = await Card.find()
         Lock.LockModel(board,
             function () {
-                for(let i; i < member_id.length; i++){
+                for(let i = 0; i < member_id.length; i++){
                     if (board.members.includes(member_id[i])) {
-                        Lock.LockModel()
+                        for(let x = 0; i < cards.length; x++){
+                            Lock.LockModel(cards[x], function(){
+                                if(cards[x].members.includes(member_id[i])){
+                                    const index = cards[x].members.indexOf(member_id[i]);
+                                    cards[x].members.splice(index, 1);
+                                    cards[x].save();
+                                }
+                            },
+                            function(err, result){
+                                if(err){
+                                    console.log(err);
+                                }
+                            });
+                        }
+                        
     
                         const index = board.members.indexOf(element);
                         board.members.splice(index, 1);
@@ -751,3 +765,4 @@ exports.RemoveList = RemoveList;
 exports.GetBoard = GetBoard;
 exports.GetBoardList = GetBoardList;
 exports.GetAdminBoardOverview = GetAdminBoardOverview;
+exports.RemoveMembers = RemoveMembers;
