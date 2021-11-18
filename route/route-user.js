@@ -230,9 +230,12 @@ router.post('/resetPassword', async (req, res) => {
       }
 
       const token = Crypto.randomBytes(48).toString('hex');
+      const expiration = new Date().now();
+      expiration.setMinutes(expiration.getMinutes() + 20);
       const reset = new Reset({
         user: user._id,
-        key: token
+        key: token,
+        expiration: expiration
       });
       reset.save();
 
@@ -272,7 +275,11 @@ router.post('/checkToken', async (req, res) => {
 
   if(token){
     const confirmToken = await Reset.findOne({key: token});
+    
     if(confirmToken){
+      if(confirmToken.expiration < Date.now()){
+        res.status(400).send("token er forældet");
+      }
       res.status(200).send("token findes");
     }else{
       res.status(400).send("token findes ikke");

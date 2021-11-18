@@ -10,6 +10,10 @@ var ResetPasswordShema = new mongoose.Schema({
     key: {
         type: String,
         require: true
+    },
+    expiration: {
+        type: Date,
+        require: true
     }
 });
 

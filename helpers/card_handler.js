@@ -225,10 +225,10 @@ async function AddMembers(user_id, board_id, card_id, member_id, callback) {
         function () {
             for(let i = 0; i < member_id.length; i++){
                 if (!card.members.includes(member_id[i])) {
-                    card.members.push(member_id);
-                    card.save();
+                    card.members.push(member_id[i]);
                 }
             }
+            card.save();
             return true;
         },
         function (err, result) {
