@@ -327,42 +327,42 @@ async function MoveCard(user_id, board_id, card_to_move_id, old_list_id, new_lis
             newList.cards = _newListCards;
 
             _card.list = newList._id;
+            _card.save();
+            oldList.save();
+            newList.save();
 
-            Lock.LockModel(_card,
-                () => {
-                    _card.save();
-                    return true;
-                }, (err, result) => {
-                    if (err) {
-                        callback(err);
-                        return;
-                    }
-                }
-            );
+            // Lock.LockModel(_card,
+            //     () => {
+            //         return true;
+            //     }, (err, result) => {
+            //         if (err) {
+            //             callback(err);
+            //             return;
+            //         }
+            //     }
+            // );
 
-            Lock.LockModel(oldList,
-                () => {
-                    oldList.save();
-                    return true;
-                }, (err, result) => {
-                    if (err) {
-                        callback(err);
-                        return;
-                    }
-                }
-            );
+            // Lock.LockModel(oldList,
+            //     () => {
+            //         return true;
+            //     }, (err, result) => {
+            //         if (err) {
+            //             callback(err);
+            //             return;
+            //         }
+            //     }
+            // );
 
-            Lock.LockModel(newList,
-                () => {
-                    newList.save();
-                    return true;
-                }, (err, result) => {
-                    if (err) {
-                        callback(err);
-                        return;
-                    }
-                }
-            );
+            // Lock.LockModel(newList,
+            //     () => {
+            //         return true;
+            //     }, (err, result) => {
+            //         if (err) {
+            //             callback(err);
+            //             return;
+            //         }
+            //     }
+            // );
 
             callback({
                 success: true,

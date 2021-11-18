@@ -49,6 +49,8 @@ async function GetAdminBoardOverview(userId, query, callback) {
     //Term er om der bliver søgt på title, ejer, eller medlem
     //Search er hvad selve søgningen inkludere
     const validSearch = query?.term && query?.search && query?.term != '' && query?.search != '';
+    const regex = new RegExp('.*' + query.search + '.*', 'i');
+    let filteredBoards = [];
 
     try {
         var boards = null;
@@ -65,26 +67,34 @@ async function GetAdminBoardOverview(userId, query, callback) {
                         })
                         .populate({
                             path: 'owner',
-                            select: 'username create_date first_name last_name colour email',
-                            match: {
-                                $or: [{ first_name: { $regex: '.*' + query.search + '.*', $options: 'i' } },
-                                { email: { $regex: '.*' + query.search + '.*', $options: 'i' } }]
-                            }
+                            select: 'username create_date first_name last_name colour email'
                         })
                         .limit(limit * 1)
                         .skip((page - 1) * limit)
                         .exec();
+
+                    boards.forEach(board => {
+                        if (!board.owner) return;
+
+                        if (board.owner.first_name.match(regex)) {
+                            filteredBoards.push(board);
+                            return;
+                        }
+
+                        if (board.owner.email.match(regex)) {
+                            filteredBoards.push(board);
+                            return;
+                        }
+                    });
+
+                    boards = filteredBoards;
                     break;
                 case 'member':
                     boards = await Board.find()
                         .sort({ [sort]: order })
                         .populate({
                             path: 'members',
-                            select: 'username create_date first_name last_name colour email',
-                            match: {
-                                $or: [{ first_name: { $regex: '.*' + query.search + '.*', $options: 'i' } },
-                                { email: { $regex: '.*' + query.search + '.*', $options: 'i' } }]
-                            }
+                            select: 'username create_date first_name last_name colour email'
                         })
                         .populate({
                             path: 'owner',
@@ -93,6 +103,27 @@ async function GetAdminBoardOverview(userId, query, callback) {
                         .limit(limit * 1)
                         .skip((page - 1) * limit)
                         .exec();
+
+                    boards.forEach(board => {
+                        console.log(board);
+                        if (!board.members) return;
+
+                        for (let i = 0; i < board.members.length; i++) {
+                            const member = board.members[i];
+                            if (member.first_name.match(regex)) {
+                                filteredBoards.push(board);
+                                break;
+                            }
+
+                            if (member.email.match(regex)) {
+                                filteredBoards.push(board);
+                                break;
+                            }
+                        }
+                    });
+
+                    boards = filteredBoards;
+
                     break;
                 case 'title':
                     boards = await Board.find({ $or: [{ title: { $regex: '.*' + query.search + '.*', $options: 'i' } }] })
@@ -113,7 +144,11 @@ async function GetAdminBoardOverview(userId, query, callback) {
                     break;
             }
 
-            count = boards.length;
+            if (boards != undefined) {
+                count = boards.length;
+            } else {
+                count = 0;
+            }
 
         } else {
             boards = await Board.find()
@@ -477,18 +512,24 @@ async function RemoveMember(user_id, board_id, member_id, callback) {
             });
         }
 
-        board = await Board.findOne({ _id: board_id });
+        const board = await Board.findOne({ _id: board_id });
         Lock.LockModel(board,
-            function () {
+            async function () {
                 if (board.members.includes(member_id)) {
-                    lists = List.find({
-                        board: board._id
-                    });
 
-                    if (lists) {
-                        lists.forEach(element => {
-                            ListHandler.DeleteList(element._id);
-                        });
+                    const cards = await Card.find({ $and: [{ board: board._id }, { members: user_id }] });
+
+                    for (let i = 0; i < cards.length; i++) {
+                        const card = cards[i];
+
+                        Lock.LockModel(card,
+                            () => {
+                                const userIndex = card.members.findIndex(u => u._id.toString() === user_id);
+                                card.members.splice(userIndex, 1);
+                                card.save();
+                            }, (err, result) => {
+                                console.log('Fejl ved fjernelsen af medlem i kort' + err);
+                            });
                     }
 
                     const index = board.members.indexOf(member_id);
