@@ -217,6 +217,8 @@ class BoardManager {
     await MoveList(userId, boardId, listId, newIndex, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
         this.moveList(userId, boardId, listId, newIndex, count);
+      } else {
+        this.sendBoard(boardId);
       }
     });
   }
