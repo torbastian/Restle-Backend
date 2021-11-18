@@ -1,7 +1,7 @@
 const Board = require("../models/board_model");
 const { CreateBoard, GetBoard, GetBoardListAsOwner,
   GetBoardListAsMember, GetBoardList, EditBoard,
-  DeleteBoard, GetAdminBoardOverview, AddMember, RemoveMember, ChangeOwner } = require("./board_handler");
+  DeleteBoard, GetAdminBoardOverview, AddMember, RemoveMember, ChangeOwner, RemoveMembers } = require("./board_handler");
 const { CreateList, EditList, MoveList, DeleteList } = require("./list_handler");
 const { CreateCard, EditCard, MoveCard, DeleteCard } = require("./card_handler");
 const { decrypt, decryptBoard } = require('./crypt');
@@ -296,6 +296,7 @@ class BoardManager {
   async removeFromBoard(userId, boardId, members, count = 0) {
     count++;
     await RemoveMembers(userId, boardId, members, (result) => {
+      console.log(result);
       if (!result.success && result.status == "DB" && count < 5) {
         this.removeFromBoard(userId, boardId, members, count = 0);
       } else if (result.success) {

@@ -575,39 +575,43 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
                 success: false,
                 message: "kun board ejer og admins kan fjerne board medlemmer"
             });
+            return;
         }
 
-        if (!member_id.isArray()) {
+        if (!Array.isArray(member_id)) {
             callback({
                 success: false,
                 message: "member_id is not an array"
             })
+            return;
         }
 
-        board = await Board.findOne({ _id: board_id });
-        lists = await List.find({
-            board: board._id
-        });
-        cards = [];
-        for (let i = 0; i < lists.length; i++) {
-            await cards.push(Card.find({ list: lists[i] }));
-        }
+        const board = await Board.findOne({ _id: board_id });
+        // const lists = await List.find({
+        //     board: board._id
+        // });
+        console.log('!!! Members', member_id);
+        const cards = await Card.find({ $and: [{ board: board._id }, { members: { $in: member_id } }] });
+        console.log('BOARD ID', board_id);
+
+        console.log('!!! Cards ', cards);
         Lock.LockModel(board,
             function () {
                 for (let i = 0; i < cards.length; i++) {
-                   for(let x = 0; x < member_id.length; x++){
-                       const index = cards[i].members.indexOf(member_id[x]);
-                        if(index >= 0){
+                    for (let x = 0; x < member_id.length; x++) {
+                        const index = cards[i].members.indexOf(member_id[x]);
+                        if (index >= 0) {
                             cards[i].members.splice(index, 1);
-                       }
-                   }
-                   Lock.LockModel(cards[i],
-                    function(){
-                        cards[i].save();
-                    },
-                    function(err, result){
+                        }
+                    }
+                    Lock.LockModel(cards[i],
+                        function () {
+                            console.log('Lock cards');
+                            cards[i].save();
+                        },
+                        function (err, result) {
 
-                    });
+                        });
                 }
             },
             function (err, result) {
