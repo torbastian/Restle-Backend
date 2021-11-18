@@ -109,15 +109,15 @@ async function DeleteList(user_id, board_id, list_id, callback) {
                 Lock.LockModel(board,
                     async function () {
 
-                        cards = await Card.find({list: list._id});
+                        cards = await Card.find({ list: list._id });
 
                         cards.forEach(element => {
-                            Lock.LockModel(element, function(){
+                            Lock.LockModel(element, function () {
                                 element.deleteOne();
                             },
-                            function(err, result){
+                                function (err, result) {
 
-                            })
+                                })
                         });
 
                         const index = board.lists.indexOf(list._id);
@@ -316,7 +316,7 @@ async function RemoveCard(user_id, board_id, list_id, card_id, callback) {
 
 async function MoveList(user_id, board_id, list_id, new_index, callback) {
     const valid = await OwnerAdminValidator(user_id, board_id);
-    if (valid) {
+    if (!valid) {
         callback({
             success: false,
             message: 'Kun admins eller board ejer kan rykke rundt på lister'
@@ -327,16 +327,7 @@ async function MoveList(user_id, board_id, list_id, new_index, callback) {
     try {
         const board = await Board.findOne({ _id: board_id });
         let newLists = [...board.lists];
-        let oldIndex = -1;
-
-        for (let i = 0; i < newLists.length; i++) {
-            const list = newLists[i].toString();
-
-            if (list == list_id) {
-                oldIndex = i;
-                break;
-            }
-        }
+        let oldIndex = newLists.findIndex(l => l._id.toString() == list_id.toString());
 
         if (oldIndex == -1) {
             callback({
