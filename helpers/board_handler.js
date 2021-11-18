@@ -600,17 +600,21 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
                         const index = cards[i].members.indexOf(member_id[x]);
                         if (index >= 0) {
                             cards[i].members.splice(index, 1);
-                        }
-                    }
-                    Lock.LockModel(cards[i],
-                        function () {
-                            console.log('Lock cards');
-                            cards[i].save();
-                        },
-                        function (err, result) {
+                       }
+                       const boardIndex = board.members.indexOf(member_id[x]);
+                       if(boardIndex >= 0){
+                           board.members.splice(boardIndex, 1);
+                       }
+                   }
+                   Lock.LockModel(cards[i],
+                    function(){
+                        cards[i].save();
+                    },
+                    function(err, result){
 
                         });
                 }
+                board.save();
             },
             function (err, result) {
                 if (err) {

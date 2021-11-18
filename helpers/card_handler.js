@@ -252,11 +252,12 @@ async function RemoveMembers(user_id, board_id, card_id, member_id, callback) {
         return;
     }
 
-    if(Array.isArray(member_id)){
+    if(!Array.isArray(member_id)){
         callback({
             success: false,
             message: "member_id is not a array"
             });
+            return;
     }
     try {
         
