@@ -1,11 +1,11 @@
 const Board = require("../models/board_model");
 const { CreateBoard, GetBoard, GetBoardListAsOwner,
   GetBoardListAsMember, GetBoardList, EditBoard,
-  DeleteBoard, GetAdminBoardOverview, AddMember, RemoveMember } = require("./board_handler");
+  DeleteBoard, GetAdminBoardOverview, AddMember, RemoveMember, ChangeOwner } = require("./board_handler");
 const { CreateList, EditList, MoveList, DeleteList } = require("./list_handler");
 const { CreateCard, EditCard, MoveCard, DeleteCard } = require("./card_handler");
 const { decrypt, decryptBoard } = require('./crypt');
-const {sleep} = require('../helpers/sleep');
+const { sleep } = require('../helpers/sleep');
 
 class BoardManager {
   constructor() {
@@ -239,7 +239,7 @@ class BoardManager {
       if (!result.success && result.status == "DB" && count < 5) {
         sleep(1000);
         this.moveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, count);
-      } else if(result.success) {
+      } else if (result.success) {
         this.sendBoard(boardId);
       }
     });
@@ -293,11 +293,23 @@ class BoardManager {
     });
   }
 
-  async removeFromBoard(userId, boardId, memberId, count = 0) {
+  async removeFromBoard(userId, boardId, members, count = 0) {
     count++;
-    await RemoveMember(userId, boardId, memberId, (result) => {
+    await RemoveMembers(userId, boardId, members, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
-        this.removeFromBoard(userId, boardId, memberId, count = 0);
+        this.removeFromBoard(userId, boardId, members, count = 0);
+      } else if (result.success) {
+        this.sendBoard(boardId);
+        this.sendBoardListUpdate(boardId);
+      }
+    });
+  }
+
+  async transferOwnershipBoard(userId, boardId, newOwnerId, count = 0) {
+    count++;
+    await ChangeOwner(userId, boardId, newOwnerId, (result) => {
+      if (!result.success && result.status == "DB" && count < 5) {
+        this.transferOwnershipBoard(userId, boardId, newOwnerId, count);
       } else if (result.success) {
         this.sendBoard(boardId);
         this.sendBoardListUpdate(boardId);
