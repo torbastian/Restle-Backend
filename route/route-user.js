@@ -4,6 +4,7 @@ const User = require('../models/user_model');
 const Reset = require('../models/reset_password_model');
 const jwt = require('jsonwebtoken');
 const { reqToUser } = require('../helpers/req_converter');
+const { isAdmin } = require("../helpers/Permission_validator");
 const { registerValidation, loginValidation } = require('../helpers/validation');
 const { signUserToken, newUser, getUserInfo } = require('../helpers/user_helper');
 const { ValidateToken } = require('../helpers/token_handler');
@@ -117,20 +118,65 @@ router.post('/update', ValidateToken, async (req, res) => {
 
 });
 
+//Update user as admin
+router.post('/admin/update', ValidateToken, async (req, res) => {
+  const verifyAdmin = await isAdmin(req.user._id);
+  if (!verifyAdmin) return res.status(400).send({ message: 'Permission denied: User isn\'t an admin' });
+
+  const user = await User.findById(req.body.userId);
+  user.first_name = req.body.first_name;
+  user.colour = req.body.colour;
+  user.last_name = req.body.last_name;
+  user.isAdmin = req.body.isAdmin;
+  const { registerError } = registerValidation(user);
+  if (registerError) return res.status(400).send({ message: error.details[0].message });
+  user.last_name = encrypt(user.last_name);
+
+  if (req.body.new_password != null) {
+
+    const { error } = loginValidation({ username: user.username, password: req.body.new_password });
+    if (error) {
+      return res.status(400).send({ message: error });
+    }
+
+    console.log(req.body.new_password);
+
+    const hashedPassword = hash(req.body.new_password);
+    user.password = hashedPassword;
+  }
+
+  try {
+    user.save().then(updateUser => {
+      if (updateUser == user) {
+        res.status(200).send(getUserInfo(user));
+      }
+    });
+  } catch (err) {
+    res.status(400).send(err);
+  }
+
+});
+
 //Delete user
 router.delete('/:userId', ValidateToken, async (req, res) => {
+  console.log(req.params.userId);
+  console.log(req.user._id);
   const userToDelete = await User.findById(req.params.userId);
-  if (userToDelete._id != req.user._id) {
+  const admin = await isAdmin(req.user._id)
+  if (userToDelete._id != req.user._id && !admin) {
     return res.status(400).send({ message: 'Denied' });
   }
   else {
     userToDelete.deleteOne();
+    if(!admin){
     return res.clearCookie('JWT').send();
+    }
   }
 });
 
 //Simpel logout der sletter brugerens Json web token.
 router.get('/logout', async (req, res) => {
+  console.log("TESTESTEST0");
   res.clearCookie('JWT').send();
 });
 
@@ -140,7 +186,7 @@ router.post('/AdminOverview', ValidateToken, async (req, res) => {
 
 router.get('/findUser', ValidateToken, async (req, res) => {
   users = await User.find({ $or: [{ first_name: { $regex: '.*' + req.query.search + '.*', $options: 'i' }}, { email: { $regex: '.*' + req.query.search + '.*', $options: 'i' } }] }
-    , ['_id', 'first_name', 'last_name', 'email', 'colour']);
+    , ['_id', 'first_name', 'last_name', 'email', 'colour', 'isAdmin']);
 
     users.forEach(function(user) {
       user.last_name = decrypt(user.last_name);

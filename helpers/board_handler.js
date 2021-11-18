@@ -172,7 +172,6 @@ async function GetBoardListAsOwner(board_owner) {
                 select: 'username create_date first_name last_name colour'
             })
             .select('-lists').then(boards => {
-                console.log("TEST GetBoardListAsOwner");
                 return {
                     success: true,
                     message: "vi fandt " + boards.length + " som du er ejer af",
@@ -205,7 +204,6 @@ async function GetBoardListAsMember(member_id) {
                 select: 'username create_date first_name last_name colour'
             })
             .select('-lists').then(boards => {
-                console.log("TEST GetBoardListAsMember");
                 return {
                     success: true,
                     message: "vi fandt " + boards.length + " som du er medlem af",
