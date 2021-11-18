@@ -169,11 +169,11 @@ async function GetAdminBoardOverview(userId, query, callback) {
             count = await Board.countDocuments();
         }
 
-        
+
         boards.forEach(board => {
-			board.title = decrypt(board.title);
+            board.title = decrypt(board.title);
             board.description = decrypt(board.description);
-		});
+        });
 
         callback({
             success: true,
@@ -268,9 +268,9 @@ async function GetBoardList(boardId) {
             })
             .select('-lists');
 
-            board.title = decrypt(board.title);
-            board.description = decrypt(board.description);
-            console.log("TEST GetBoardList");
+        board.title = decrypt(board.title);
+        board.description = decrypt(board.description);
+        console.log("TEST GetBoardList");
 
         if (!board) {
             return {
@@ -568,7 +568,7 @@ async function RemoveMember(user_id, board_id, member_id, callback) {
     }
 }
 
-async function ChangeOwner(user_id, board_id, owner_id, callback) {
+async function ChangeOwner(user_id, board_id, new_owner_id, callback) {
     try {
         const valid = !OwnerAdminValidator(user_id, board_id);
         if (!valid) {
@@ -578,9 +578,29 @@ async function ChangeOwner(user_id, board_id, owner_id, callback) {
             });
         }
 
-        board = await Board.findOne({ _id: board_id });
+        const user = await User.findOne({ _id: new_owner_id });
+
+        if (!user) {
+            callback({
+                success: false,
+                message: 'Bruger kunne ikke findes'
+            });
+        }
+
+        const board = await Board.findOne({ _id: board_id });
+
+        if (!board) {
+            callback({
+                success: false,
+                message: 'Board kunne ikke findes'
+            });
+        }
+
         result = Lock.LockModel(board,
             function () {
+
+
+
                 board.owner = owner_id;
                 board.save();
                 return true;
