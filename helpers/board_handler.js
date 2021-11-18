@@ -615,7 +615,7 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
                    if(boardIndex >= 0){
                        board.members.splice(boardIndex, 1);
                    }
-               }
+                }
                 board.save();
             },
             function (err, result) {
