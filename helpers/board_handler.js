@@ -672,10 +672,20 @@ async function ChangeOwner(user_id, board_id, owner_id, callback) {
 
         result = Lock.LockModel(board,
             function () {
+                const userIndex = board.members.findIndex(u => u._id.toString() == user_id);
 
+                if (userIndex == -1) {
+                    callback({
+                        success: false,
+                        message: 'Bruger kunne ikke findes på board'
+                    })
+                }
 
-
+                const previousOwner = board.owner;
                 board.owner = owner_id;
+
+                board.members.splice(userIndex, 1);
+                board.members.push(previousOwner);
                 board.save();
                 return true;
             },
