@@ -77,10 +77,10 @@ function startWebscoketServer(server) {
           boardManager.updateCard(userId, json.boardId, json.cardId, json.details);
           break;
         case 'INVITE_CARD_MEMBER':
-
+          boardManager.inviteToCard(userId, json.boardId, json.cardId, json.members);
           break;
         case 'REMOVE_CARD_MEMBER':
-
+          boardManager.removeFromCard(userId, json.boardId, json.cardId, json.members);
           break;
         case 'UPDATE_LIST':
           boardManager.updateList(userId, json.boardId, json.listId, json.details);

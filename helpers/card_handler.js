@@ -169,7 +169,7 @@ async function EditCard(user_id, board_id, card_id, title, description, callback
     }
 }
 
-async function AddMember(user_id, board_id, card_id, member_id, callback) {
+async function AddCardMember(user_id, board_id, card_id, member_id, callback) {
     const valid = OwnerAdminValidator(user_id, board_id);
     if (!valid) {
         callback({
@@ -202,7 +202,7 @@ async function AddMember(user_id, board_id, card_id, member_id, callback) {
         });
 }
 
-async function RemoveMember(user_id, board_id, card_id, member_id, callback) {
+async function RemoveCardMember(user_id, board_id, card_id, member_id, callback) {
     const valid = await OwnerAdminValidator(user_id, board_id)
     if (!valid) {
         callback({
@@ -242,7 +242,7 @@ async function RemoveMember(user_id, board_id, card_id, member_id, callback) {
         });
     }
 }
-async function RemoveMembers(user_id, board_id, card_id, member_id, callback) {
+async function RemoveCardMembers(user_id, board_id, card_id, member_id, callback) {
     const valid = await OwnerAdminValidator(user_id, board_id)
     if (!valid) {
         callback({
@@ -252,43 +252,43 @@ async function RemoveMembers(user_id, board_id, card_id, member_id, callback) {
         return;
     }
 
-    if(!Array.isArray(member_id)){
+    if (!Array.isArray(member_id)) {
         callback({
             success: false,
             message: "member_id is not a array"
-            });
-            return;
+        });
+        return;
     }
     try {
-        
-        const card = await Card.findOne({_id: card_id});
 
-        for(let i = 0; i < member_id.length; i++){
+        const card = await Card.findOne({ _id: card_id });
+
+        for (let i = 0; i < member_id.length; i++) {
             const index = card.members.indexOf(member_id[i]);
-            if(index >= 0){
+            if (index >= 0) {
                 card.members.splice(index, 1);
             }
         }
         Lock.LockModel(card,
-            function(){
+            function () {
                 card.save();
             },
-            function(err, result){
-                if(err){
+            function (err, result) {
+                if (err) {
                     callback(err);
                     return;
                 }
-                if(result){
+                if (result) {
                     callback({
                         success: true,
                         message: "medlemmer er blevet fjernet",
                         object: card
                     });
                 }
-                
+
             })
 
-        
+
     } catch (err) {
         callback({
             success: false,
@@ -446,9 +446,9 @@ async function MoveCard(user_id, board_id, card_to_move_id, old_list_id, new_lis
 
 exports.CreateCard = CreateCard;
 exports.DeleteCard = DeleteCard;
-exports.AddMember = AddMember;
-exports.RemoveMember = RemoveMember;
+exports.AddCardMember = AddCardMember;
+exports.RemoveCardMember = RemoveCardMember;
 exports.EditCard = EditCard;
 exports.GetCards = GetCards;
 exports.MoveCard = MoveCard;
-exports.RemoveMembers = RemoveMembers;
+exports.RemoveCardMembers = RemoveCardMembers;
