@@ -332,44 +332,54 @@ async function MoveCard(user_id, board_id, card_to_move_id, old_list_id, new_lis
             oldList.save();
             newList.save();
 
-            // Lock.LockModel(_card,
-            //     () => {
-            //         return true;
-            //     }, (err, result) => {
-            //         if (err) {
-            //             callback(err);
-            //             return;
-            //         }
-            //     }
-            // );
+            Lock.LockModel(_card,
+                () => {
+                    console.log("first card lock");
+                    Lock.LockModel(oldList,
+                        async () => {
+                            console.log("secound card lock");
+                            await Lock.LockModel(newList,
+                                async () => {
+                                    console.log("third card lock");
+                                    newList.save();
+                                    oldList.save();
+                                    _card.save();
+                                    return true;
+                                }, (err, result) => {
+                                    if (err) {
+                                        console.log("third err ", err);
+                                        callback(err);
+                                        return;
+                                    }
+                                    console.log("calling back");
+                                    if (result) {
+                                        callback({
+                                            success: true,
+                                            message: 'Kort Rykket',
+                                            object: [oldList, newList]
+                                        });
+                                    }
+                                }
+                            );
+                            return true;
+                        }, (err, result) => {
+                            if (err) {
+                                console.log("secound err ", err);
+                                callback(err);
+                                return;
+                            }
+                        }
+                    );
+                    return true;
+                }, (err, result) => {
+                    if (err) {
+                        console.log("first err ", err);
+                        callback(err);
+                        return;
+                    }
 
-            // Lock.LockModel(oldList,
-            //     () => {
-            //         return true;
-            //     }, (err, result) => {
-            //         if (err) {
-            //             callback(err);
-            //             return;
-            //         }
-            //     }
-            // );
-
-            // Lock.LockModel(newList,
-            //     () => {
-            //         return true;
-            //     }, (err, result) => {
-            //         if (err) {
-            //             callback(err);
-            //             return;
-            //         }
-            //     }
-            // );
-
-            callback({
-                success: true,
-                message: 'Kort Rykket',
-                object: [oldList, newList]
-            });
+                }
+            );
             return;
         }
     } catch (err) {

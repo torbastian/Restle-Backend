@@ -5,6 +5,7 @@ const { CreateBoard, GetBoard, GetBoardListAsOwner,
 const { CreateList, EditList, MoveList, DeleteList } = require("./list_handler");
 const { CreateCard, EditCard, MoveCard, DeleteCard } = require("./card_handler");
 const { decrypt, decryptBoard } = require('./crypt');
+const {sleep} = require('../helpers/sleep');
 
 class BoardManager {
   constructor() {
@@ -163,6 +164,7 @@ class BoardManager {
     count++;
     await CreateList(userId, boardId, details.title, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
+        sleep(1000);
         this.createNewList(userId, boardId, details, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -174,6 +176,7 @@ class BoardManager {
     count++;
     await CreateCard(userId, boardId, listId, details.title, details.description, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
+        sleep(1000);
         this.createNewCard(userId, boardId, listId, details, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -185,6 +188,7 @@ class BoardManager {
     count++;
     await EditBoard(userId, boardId, details.title, details.description, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
+        sleep(1000);
         this.updateBoard(userId, boardId, details, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -197,6 +201,7 @@ class BoardManager {
     count++;
     await EditCard(userId, boardId, cardId, details.title, details.description, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
+        sleep(1000);
         this.updateCard(userId, boardId, cardId, details, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -208,8 +213,9 @@ class BoardManager {
     count++;
     await EditList(userId, boardId, listId, details.title, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
+        sleep(1000);
         this.updateList(userId, boardId, listId, details, count);
-      } else if (result.sucess) {
+      } else if (result.success) {
         this.sendBoard(boardId);
       }
     });
@@ -219,8 +225,9 @@ class BoardManager {
     count++;
     await MoveList(userId, boardId, listId, newIndex, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
+        sleep(1000);
         this.moveList(userId, boardId, listId, newIndex, count);
-      } else if (result.sucess) {
+      } else if (result.success) {
         this.sendBoard(boardId);
       }
     });
@@ -230,8 +237,9 @@ class BoardManager {
     count++;
     await MoveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
+        sleep(1000);
         this.moveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, count);
-      } else if (result.sucess) {
+      } else if(result.success) {
         this.sendBoard(boardId);
       }
     });
@@ -241,8 +249,9 @@ class BoardManager {
     count++;
     await DeleteBoard(boardId, userId, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
+        sleep(1000);
         this.deleteBoard(userId, boardId, count);
-      } else if (result.sucess) {
+      } else if (result.success) {
         this.deleteBoardSubscription(boardId);
       }
     });
@@ -252,8 +261,9 @@ class BoardManager {
     count++;
     await DeleteCard(userId, boardId, cardId, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
+        sleep(1000);
         this.deleteCard(userId, boardId, cardId, count);
-      } else if (result.sucess) {
+      } else if (result.success) {
         this.sendBoard(boardId);
       }
     });
@@ -263,8 +273,9 @@ class BoardManager {
     count++;
     await DeleteList(userId, boardId, listId, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
+        sleep(1000);
         this.deleteList(userId, boardId, listId, count);
-      } else if (result.sucess) {
+      } else if (result.success) {
         this.sendBoard(boardId);
       }
     });

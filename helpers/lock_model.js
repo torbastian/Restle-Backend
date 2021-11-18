@@ -1,5 +1,5 @@
 function LockModel(ModelToLock, Action, Callback) {
-    ModelToLock.lock(2000, async function (err, model) {
+    ModelToLock.lock(500, async function (err, model) {
         if (!model) {
             Callback({
                 success: false,
