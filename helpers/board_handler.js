@@ -283,7 +283,6 @@ async function GetBoard(boardId) {
                 }
             });
 
-
         if (!board) {
             return {
                 success: false,
@@ -510,6 +509,67 @@ async function RemoveMember(user_id, board_id, member_id, callback) {
                 }
             },
             function (err, result) {
+                if (board) {
+                    callback({
+                        success: true,
+                        message: "Board medlem blev fjernet",
+                        object: board
+                    })
+                }
+            }
+        );
+    } catch (err) {
+        callback({
+            success: false,
+            message: "medlem blev ikke fjernet. " + err
+        });
+    }
+}
+
+async function RemoveMembers(user_id, board_id, member_id, callback) {
+    try {
+        const valid = await OwnerAdminValidator(user_id, board_id);
+        if (!valid) {
+            callback({
+                success: false,
+                message: "kun board ejer og admins kan fjerne board medlemmer"
+            });
+        }
+
+        if(!member_id.isArray()){
+            callback({
+                success: false,
+                message: "member_id is not an array"
+            })
+        }
+
+        board = await Board.findOne({ _id: board_id });
+        lists = await List.find({
+            board: board._id
+        });
+        cards = [];
+        for(let i; i<lists.length; i++){
+            await cards.push(Card.find({list: lists[i]}));
+        }
+        cards = await Card.find()
+        Lock.LockModel(board,
+            function () {
+                for(let i; i < member_id.length; i++){
+                    if (board.members.includes(member_id[i])) {
+                        Lock.LockModel()
+    
+                        const index = board.members.indexOf(element);
+                        board.members.splice(index, 1);
+                        board.save();
+                        return true;
+                    }
+                }
+            },
+            function (err, result) {
+                if(err){
+                    callback(err);
+                    return
+                }
                 if (board) {
                     callback({
                         success: true,
