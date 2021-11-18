@@ -1,5 +1,7 @@
-const { CreateBoard, GetBoard, GetBoardListAsOwner, GetBoardListAsMember, GetBoardList, EditBoard, DeleteBoard, GetAdminBoardOverview } = require("./board_handler");
 const Board = require("../models/board_model");
+const { CreateBoard, GetBoard, GetBoardListAsOwner,
+  GetBoardListAsMember, GetBoardList, EditBoard,
+  DeleteBoard, GetAdminBoardOverview, AddMember, RemoveMember } = require("./board_handler");
 const { CreateList, EditList, MoveList, DeleteList } = require("./list_handler");
 const { CreateCard, EditCard, MoveCard, DeleteCard } = require("./card_handler");
 const { decrypt, decryptBoard } = require('./crypt');
@@ -264,6 +266,30 @@ class BoardManager {
         this.deleteList(userId, boardId, listId, count);
       } else if (result.sucess) {
         this.sendBoard(boardId);
+      }
+    });
+  }
+
+  async inviteToBoard(userId, boardId, memberId, count = 0) {
+    count++;
+    await AddMember(userId, boardId, memberId, (result) => {
+      if (!result.success && result.status == "DB" && count < 5) {
+        this.inviteToBoard(userId, boardId, memberId, count);
+      } else if (result.success) {
+        this.sendBoard(boardId);
+        this.sendBoardListUpdate(boardId);
+      }
+    });
+  }
+
+  async removeFromBoard(userId, boardId, memberId, count = 0) {
+    count++;
+    await RemoveMember(userId, boardId, memberId, (result) => {
+      if (!result.success && result.status == "DB" && count < 5) {
+        this.removeFromBoard(userId, boardId, memberId, count = 0);
+      } else if (result.success) {
+        this.sendBoard(boardId);
+        this.sendBoardListUpdate(boardId);
       }
     });
   }
