@@ -161,7 +161,7 @@ class BoardManager {
     await CreateList(userId, boardId, details.title, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
         this.createNewList(userId, boardId, details, count);
-      } else {
+      } else if (result.success) {
         this.sendBoard(boardId);
       }
     });
@@ -172,7 +172,7 @@ class BoardManager {
     await CreateCard(userId, boardId, listId, details.title, details.description, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
         this.createNewCard(userId, boardId, listId, details, count);
-      } else {
+      } else if (result.success) {
         this.sendBoard(boardId);
       }
     });
@@ -183,7 +183,7 @@ class BoardManager {
     await EditBoard(userId, boardId, details.title, details.description, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
         this.updateBoard(userId, boardId, details, count);
-      } else {
+      } else if (result.success) {
         this.sendBoard(boardId);
         this.sendBoardListUpdate(boardId);
       }
@@ -195,7 +195,7 @@ class BoardManager {
     await EditCard(userId, boardId, cardId, details.title, details.description, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
         this.updateCard(userId, boardId, cardId, details, count);
-      } else {
+      } else if (result.success) {
         this.sendBoard(boardId);
       }
     });
@@ -206,7 +206,7 @@ class BoardManager {
     await EditList(userId, boardId, listId, details.title, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
         this.updateList(userId, boardId, listId, details, count);
-      } else {
+      } else if (result.sucess) {
         this.sendBoard(boardId);
       }
     });
@@ -217,7 +217,7 @@ class BoardManager {
     await MoveList(userId, boardId, listId, newIndex, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
         this.moveList(userId, boardId, listId, newIndex, count);
-      } else {
+      } else if (result.sucess) {
         this.sendBoard(boardId);
       }
     });
@@ -228,7 +228,7 @@ class BoardManager {
     await MoveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
         this.moveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, count);
-      } else {
+      } else if (result.sucess) {
         this.sendBoard(boardId);
       }
     });
@@ -239,7 +239,7 @@ class BoardManager {
     await DeleteBoard(boardId, userId, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
         this.deleteBoard(userId, boardId, count);
-      } else {
+      } else if (result.sucess) {
         this.deleteBoardSubscription(boardId);
       }
     });
@@ -250,7 +250,7 @@ class BoardManager {
     await DeleteCard(userId, boardId, cardId, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
         this.deleteCard(userId, boardId, cardId, count);
-      } else {
+      } else if (result.sucess) {
         this.sendBoard(boardId);
       }
     });
@@ -261,7 +261,7 @@ class BoardManager {
     await DeleteList(userId, boardId, listId, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
         this.deleteList(userId, boardId, listId, count);
-      } else {
+      } else if (result.sucess) {
         this.sendBoard(boardId);
       }
     });
