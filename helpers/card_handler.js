@@ -202,7 +202,51 @@ async function AddCardMember(user_id, board_id, card_id, member_id, callback) {
         });
 }
 
-async function RemoveCardMember(user_id, board_id, card_id, member_id, callback) {
+async function AddCardMembers(user_id, board_id, card_id, member_id, callback) {
+    const valid = OwnerAdminValidator(user_id, board_id);
+    if (!valid) {
+        callback({
+            success: false,
+            message: "kun admins eller board ejer kan fjerne kort fra listen"
+        });
+        return;
+    }
+
+    if (!Array.isArray(member_id)) {
+        callback({
+            success: false,
+            message: "member_id er ikke et array"
+        });
+    }
+
+
+    card = await Card.findOne({ _id: card_id });
+    Lock.LockModel(card,
+        function () {
+            for (let i = 0; i < member_id.length; i++) {
+                if (!card.members.includes(member_id[i])) {
+                    card.members.push(member_id);
+                    card.save();
+                }
+            }
+            return true;
+        },
+        function (err, result) {
+            if (err) {
+                callback(err);
+                return;
+            }
+            if (result) {
+                callback({
+                    success: true,
+                    message: "Kort er blevet gemt",
+                    object: result
+                });
+            }
+        });
+}
+
+async function RemoveMember(user_id, board_id, card_id, member_id, callback) {
     const valid = await OwnerAdminValidator(user_id, board_id)
     if (!valid) {
         callback({
@@ -447,8 +491,8 @@ async function MoveCard(user_id, board_id, card_to_move_id, old_list_id, new_lis
 exports.CreateCard = CreateCard;
 exports.DeleteCard = DeleteCard;
 exports.AddCardMember = AddCardMember;
-exports.RemoveCardMember = RemoveCardMember;
 exports.EditCard = EditCard;
 exports.GetCards = GetCards;
 exports.MoveCard = MoveCard;
 exports.RemoveCardMembers = RemoveCardMembers;
+exports.AddCardMembers = AddCardMembers;
