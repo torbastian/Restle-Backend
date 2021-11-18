@@ -260,23 +260,33 @@ async function RemoveMembers(user_id, board_id, card_id, member_id, callback) {
     }
     try {
         
-        const cards = await Card.find({members: {$in : [member_id]}});
+        const card = await Card.findOne({_id: card_id});
 
-        for(let i = 0; i < cards.length; i++){
-            for(let x = 0; x < member_id.lenght; x++){
-                const index = cards[i].members.indexOf(member_id[x]);
-                if(index >= 0){
-                    cards[i].members.splice(index, 1);
-                }
+        for(let i = 0; i < member_id.length; i++){
+            const index = card.members.indexOf(member_id[i]);
+            if(index >= 0){
+                card.members.splice(index, 1);
             }
-            Lock.LockModel(cards[i],
-                function(){
-                    cards[i].save();
-                },
-                function(err, result){
-
-                })
         }
+        Lock.LockModel(card,
+            function(){
+                card.save();
+            },
+            function(err, result){
+                if(err){
+                    callback(err);
+                    return;
+                }
+                if(result){
+                    callback({
+                        success: true,
+                        message: "medlemmer er blevet fjernet",
+                        object: card
+                    });
+                }
+                
+            })
+
         
     } catch (err) {
         callback({
