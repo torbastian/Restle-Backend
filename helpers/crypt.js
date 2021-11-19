@@ -42,6 +42,7 @@ function decryptBoard(board) {
 			member.last_name = decrypt(member.last_name);
 		}
 	});
+	
 	if (board.lists) {
 		board.lists.forEach(list => {
 			if (list.title) {
