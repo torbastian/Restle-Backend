@@ -73,6 +73,9 @@ function startWebscoketServer(server) {
         case 'TRANSFER_BOARD_OWNERSHIP':
           boardManager.transferOwnershipBoard(userId, json.boardId, json.userId);
           break;
+        case 'LEAVE_BOARD':
+          boardManager.leaveBoard(userId, json.boardId);
+          break;
         case 'UPDATE_CARD':
           boardManager.updateCard(userId, json.boardId, json.cardId, json.details);
           break;

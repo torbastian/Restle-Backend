@@ -642,7 +642,7 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
 
 async function LeaveBoard(user_id, board_id, callback) {
     try {
-        const valid = !MemberValidator(user_id, board_id);
+        const valid = MemberValidator(user_id, board_id);
         if (!valid) {
             callback({
                 success: false,
@@ -657,7 +657,8 @@ async function LeaveBoard(user_id, board_id, callback) {
 
         for (let i = 0; i < board.members.length; i++) {
             const member = board.members[i];
-            if (member._id == user_id) {
+
+            if (member._id.toString() == user_id) {
                 isMember = true;
                 break;
             }
@@ -671,16 +672,45 @@ async function LeaveBoard(user_id, board_id, callback) {
             return;
         }
 
+        const cards = await Card.find({ $and: [{ board: board._id }, { members: user_id }] });
+
         Lock.LockModel(board,
             () => {
+                for (let i = 0; i < cards.length; i++) {
+                    const card = cards[i];
+                    Lock.LockModel(card, () => {
+                        const memberIndex = card.members.findIndex(m => m._id.toString() === user_id);
+                        card.members.splice(memberIndex, 1);
+                        card.save();
+                    }, (err, result) => {
+                        console.log(err);
+                    });
+                }
 
-            }, () => {
+                const memberIndex = board.members.findIndex(m => m._id.toString() === user_id);
+                board.members.splice(memberIndex, 1);
+                board.save();
+            }, (err, result) => {
+                if (err) {
+                    callback({
+                        success: false,
+                        message: 'Der var en fejl da medlemmet prøvede at forlade et board. ' + err
+                    });
+                    return;
+                }
 
+                callback({
+                    success: true,
+                    message: 'Medlem har forladt boardet'
+                });
             });
 
 
-    } catch {
-
+    } catch (err) {
+        callback({
+            success: false,
+            message: 'Der var en fejl da medlemmet prøvede at forlade et board. ' + err
+        });
     }
 }
 
@@ -879,3 +909,4 @@ exports.GetBoard = GetBoard;
 exports.GetBoardList = GetBoardList;
 exports.GetAdminBoardOverview = GetAdminBoardOverview;
 exports.RemoveMembers = RemoveMembers;
+exports.LeaveBoard = LeaveBoard;

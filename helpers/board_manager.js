@@ -1,7 +1,7 @@
 const Board = require("../models/board_model");
 const { CreateBoard, GetBoard, GetBoardListAsOwner,
   GetBoardListAsMember, GetBoardList, EditBoard,
-  DeleteBoard, GetAdminBoardOverview, AddMember, RemoveMember, ChangeOwner, RemoveMembers } = require("./board_handler");
+  DeleteBoard, GetAdminBoardOverview, AddMember, RemoveMember, ChangeOwner, RemoveMembers, LeaveBoard } = require("./board_handler");
 const { CreateList, EditList, MoveList, DeleteList } = require("./list_handler");
 const { CreateCard, EditCard, MoveCard, DeleteCard, AddCardMember, RemoveCardMembers, AddCardMembers } = require("./card_handler");
 const { decrypt, decryptBoard } = require('./crypt');
@@ -322,6 +322,18 @@ class BoardManager {
       console.log(result);
       if (!result.success && result.status == "DB" && count < 5) {
         this.removeFromBoard(userId, boardId, members, count = 0);
+      } else if (result.success) {
+        this.sendBoard(boardId);
+        this.sendBoardListUpdate(boardId);
+      }
+    });
+  }
+
+  async leaveBoard(userId, boardId, count = 0) {
+    count++;
+    await LeaveBoard(userId, boardId, (result) => {
+      if (!result.success && result.status == "DB" && count < 5) {
+        this.leaveBoard(userId, boardId, count);
       } else if (result.success) {
         this.sendBoard(boardId);
         this.sendBoardListUpdate(boardId);
