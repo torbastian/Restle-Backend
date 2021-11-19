@@ -123,37 +123,42 @@ router.post('/admin/update', ValidateToken, async (req, res) => {
   const verifyAdmin = await isAdmin(req.user._id);
   if (!verifyAdmin) return res.status(400).send({ message: 'Permission denied: User isn\'t an admin' });
 
-  const user = await User.findById(req.body.userId);
-  user.first_name = req.body.first_name;
-  user.colour = req.body.colour;
-  user.last_name = req.body.last_name;
-  user.isAdmin = req.body.isAdmin;
-  const { registerError } = registerValidation(user);
-  if (registerError) return res.status(400).send({ message: error.details[0].message });
-  user.last_name = encrypt(user.last_name);
-
-  if (req.body.new_password != null) {
-
-    const { error } = loginValidation({ username: user.username, password: req.body.new_password });
-    if (error) {
-      return res.status(400).send({ message: error });
-    }
-
-    console.log(req.body.new_password);
-
-    const hashedPassword = hash(req.body.new_password);
-    user.password = hashedPassword;
-  }
-
-  try {
-    user.save().then(updateUser => {
-      if (updateUser == user) {
-        res.status(200).send(getUserInfo(user));
+  if(req.user._id != req.body.userid){
+    const user = await User.findById(req.body.userId);
+    user.first_name = req.body.first_name;
+    user.colour = req.body.colour;
+    user.last_name = req.body.last_name;
+    user.isAdmin = req.body.isAdmin;
+    const { registerError } = registerValidation(user);
+    if (registerError) return res.status(400).send({ message: error.details[0].message });
+    user.last_name = encrypt(user.last_name);
+  
+    if (req.body.new_password != null) {
+  
+      const { error } = loginValidation({ username: user.username, password: req.body.new_password });
+      if (error) {
+        return res.status(400).send({ message: error });
       }
-    });
-  } catch (err) {
-    res.status(400).send(err);
+  
+      console.log(req.body.new_password);
+  
+      const hashedPassword = hash(req.body.new_password);
+      user.password = hashedPassword;
+    }
+  
+    try {
+      user.save().then(updateUser => {
+        if (updateUser == user) {
+          res.status(200).send(getUserInfo(user));
+        }
+      });
+    } catch (err) {
+      res.status(400).send(err);
+    }
+  }else{
+    res.status(400).send("Kan ikke redigere admin rattigheder på sig selv");
   }
+  
 
 });
 
