@@ -3,7 +3,7 @@ const { CreateBoard, GetBoard, GetBoardListAsOwner,
   GetBoardListAsMember, GetBoardList, EditBoard,
   DeleteBoard, GetAdminBoardOverview, AddMember, RemoveMember, ChangeOwner, RemoveMembers } = require("./board_handler");
 const { CreateList, EditList, MoveList, DeleteList } = require("./list_handler");
-const { CreateCard, EditCard, MoveCard, DeleteCard, AddCardMember, RemoveCardMembers } = require("./card_handler");
+const { CreateCard, EditCard, MoveCard, DeleteCard, AddCardMember, RemoveCardMembers, AddCardMembers } = require("./card_handler");
 const { decrypt, decryptBoard } = require('./crypt');
 const { sleep } = require('../helpers/sleep');
 
@@ -295,8 +295,7 @@ class BoardManager {
 
   async inviteToCard(userId, boardId, cardId, memberId, count = 0) {
     count++;
-    //TODO UPDATE
-    await AddCardMember(userId, boardId, cardId, memberId, (result) => {
+    await AddCardMembers(userId, boardId, cardId, memberId, (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
         this.inviteToCard(userId, boardId, cardId, memberId, count);
       } else if (result.success) {
@@ -307,8 +306,8 @@ class BoardManager {
 
   async removeFromCard(userId, boardId, cardId, members, count = 0) {
     count++;
-    //TODO UPDATE
     await RemoveCardMembers(userId, boardId, cardId, members, (result) => {
+      console.log(result);
       if (!result.success && result.status == "DB" && count < 5) {
         this.removeFromCard(userId, boardId, cardId, members, count);
       } else if (result.success) {

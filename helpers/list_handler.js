@@ -351,17 +351,10 @@ async function MoveList(user_id, board_id, list_id, new_index, callback) {
                     return;
                 }
 
-                if (result.lists == board.lists) {
-                    callback({
-                        success: true,
-                        message: 'Liste blev rykket'
-                    })
-                } else {
-                    callback({
-                        sucess: false,
-                        message: 'Liste blev ikke rykket'
-                    })
-                }
+                callback({
+                    success: true,
+                    message: 'Liste blev rykket'
+                })
             }
         )
     } catch (err) {
