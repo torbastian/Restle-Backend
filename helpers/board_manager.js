@@ -383,6 +383,9 @@ class BoardManager {
     owned.forEach(board => {
       board = decryptBoard(board);
     });
+    memberOf.forEach(board => {
+      board = decryptBoard(board);
+    });
 
     const listPackage = JSON.stringify({
       response: 'BOARD_LIST_RESPONSE',
