@@ -67,7 +67,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-//Get user?
+//Get user
 router.get('/', ValidateToken, async (req, res) => {
   await User.findById(req.user._id).then((user, err) => {
     if (!err) {
