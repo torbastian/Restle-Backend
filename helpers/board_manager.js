@@ -237,6 +237,7 @@ class BoardManager {
   async moveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, count = 0) {
     count++;
     await MoveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, async (result) => {
+      console.log('Move card', result);
       if (!result.success && result.status == "DB" && count < 5) {
         await sleep(200 * count);
         this.moveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, count);

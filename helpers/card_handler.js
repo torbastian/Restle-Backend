@@ -104,40 +104,38 @@ async function DeleteCard(user_id, board_id, card_id, callback) {
     }
     try {
         card = await Card.findOne({ _id: card_id });
-        list = await List.findOne({_id: card.list});
-        
+        list = await List.findOne({ _id: card.list });
+
         const index = list.cards.indexOf(card._id);
-        if(index >= 0){
+        if (index >= 0) {
             list.cards.splice(index, 1);
         }
         Lock.LockModel(card,
             function () {
                 Lock.LockModel(list,
-                    function(){
-                        list.save();
-                        card.deleteOne();
+                    async function () {
+                        await list.save();
+                        await card.deleteOne();
+                        callback({
+                            success: true,
+                            message: "Kort er blevet slettet",
+                            object: card
+                        });
                         return true;
                     },
-                    function(err, result){
-                        if(err){
+                    function (err, result) {
+                        if (err) {
                             callback(err);
                             return;
                         }
                     })
-                
+
                 return true;
             },
             function (err, result) {
                 if (err) {
                     callback(err);
                     return;
-                }
-                if (card) {
-                    callback({
-                        success: true,
-                        message: "Kort er blevet slettet",
-                        object: card
-                    });
                 }
             });
     } catch (err) {
@@ -438,42 +436,31 @@ async function MoveCard(user_id, board_id, card_to_move_id, old_list_id, new_lis
             _newListCards = [...newList.cards];
             _newListCards.splice(destination_index, 0, { _id: card_to_move_id });
 
-            // oldList.cards.pull({ _id: card_to_move_id });
-            // newList.cards.splice(destination_index, 0, { _id: card_to_move_id });
             oldList.cards = _oldListCards;
             newList.cards = _newListCards;
 
             _card.list = newList._id;
-            _card.save();
-            oldList.save();
-            newList.save();
 
             Lock.LockModel(_card,
                 () => {
-                    console.log("first card lock");
                     Lock.LockModel(oldList,
                         async () => {
-                            console.log("secound card lock");
-                            await Lock.LockModel(newList,
+                            Lock.LockModel(newList,
                                 async () => {
-                                    console.log("third card lock");
-                                    newList.save();
-                                    oldList.save();
-                                    _card.save();
+                                    await newList.save();
+                                    await oldList.save();
+                                    await _card.save();
+                                    callback({
+                                        success: true,
+                                        message: 'Kort Rykket',
+                                        object: [oldList, newList]
+                                    });
                                     return true;
                                 }, (err, result) => {
                                     if (err) {
                                         console.log("third err ", err);
                                         callback(err);
                                         return;
-                                    }
-                                    console.log("calling back");
-                                    if (result) {
-                                        callback({
-                                            success: true,
-                                            message: 'Kort Rykket',
-                                            object: [oldList, newList]
-                                        });
                                     }
                                 }
                             );
