@@ -104,9 +104,27 @@ async function DeleteCard(user_id, board_id, card_id, callback) {
     }
     try {
         card = await Card.findOne({ _id: card_id });
+        list = await List.findOne({_id: card.list});
+        
+        const index = list.cards.indexOf(card._id);
+        if(index >= 0){
+            list.cards.splice(index, 1);
+        }
         Lock.LockModel(card,
             function () {
-                card.deleteOne();
+                Lock.LockModel(list,
+                    function(){
+                        list.save();
+                        card.deleteOne();
+                        return true;
+                    },
+                    function(err, result){
+                        if(err){
+                            callback(err);
+                            return;
+                        }
+                    })
+                
                 return true;
             },
             function (err, result) {
@@ -496,3 +514,4 @@ exports.GetCards = GetCards;
 exports.MoveCard = MoveCard;
 exports.RemoveCardMembers = RemoveCardMembers;
 exports.AddCardMembers = AddCardMembers;
+exports.RemoveMember = RemoveMember;
