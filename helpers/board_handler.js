@@ -451,7 +451,7 @@ async function EditBoard(user_id, board_id, title, description, callback) {
         board = await Board.findOne({ _id: board_id });
         Lock.LockModel(board,
             function () {
-                board.title = encrypt(title);
+                board.title = title;
                 board.description = encrypt(description);
                 board.save();
                 return true;
