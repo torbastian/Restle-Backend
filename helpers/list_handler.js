@@ -331,42 +331,61 @@ async function MoveList(user_id, board_id, list_id, new_index, callback) {
 
     try {
         const board = await Board.findOne({ _id: board_id });
-        let newLists = [...board.lists];
-        let oldIndex = newLists.findIndex(l => l._id.toString() == list_id.toString());
 
-        if (oldIndex == -1) {
+        if (!board) {
             callback({
-                sucess: false,
-                message: 'Listen kunne ikke findes'
-            })
+                success: false,
+                message: 'Board kunne ikke findes'
+            });
             return;
         }
 
-        let removedList = newLists.splice(oldIndex, 1)[0];
-        newLists.splice(new_index, 0, removedList);
-        board.lists = newLists;
-
         Lock.LockModel(board,
-            () => {
-                board.save();
+            async () => {
+                let newLists = [...board.lists];
+                let oldIndex = newLists.findIndex(l => l._id.toString() == list_id.toString());
+
+                if (oldIndex == -1) {
+                    callback({
+                        success: false,
+                        message: 'Listen kunne ikke findes'
+                    })
+                    return;
+                }
+
+                if (oldIndex == new_index) {
+                    callback({
+                        success: false,
+                        message: 'Liste er er allerde på ny index'
+                    });
+                    return;
+                }
+
+                let removedList = newLists.splice(oldIndex, 1)[0];
+                newLists.splice(new_index, 0, removedList);
+
+                board.lists = newLists;
+                await board.save();
+
+                callback({
+                    success: true,
+                    message: 'Liste blev rykket'
+                });
+
                 return true;
             }, (err, result) => {
                 if (err) {
                     callback(err);
                     return;
                 }
-
-                callback({
-                    success: true,
-                    message: 'Liste blev rykket'
-                })
             }
-        )
+        );
+
     } catch (err) {
         callback({
             success: false,
             message: 'Liste blev ikke rykket. ' + err
-        })
+        });
     }
 }
 

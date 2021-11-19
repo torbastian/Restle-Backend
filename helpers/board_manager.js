@@ -162,9 +162,9 @@ class BoardManager {
 
   async createNewList(userId, boardId, details, count = 0) {
     count++;
-    await CreateList(userId, boardId, details.title, (result) => {
+    await CreateList(userId, boardId, details.title, async (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
-        sleep(1000);
+        await sleep(200 * count);
         this.createNewList(userId, boardId, details, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -174,9 +174,9 @@ class BoardManager {
 
   async createNewCard(userId, boardId, listId, details, count = 0) {
     count++;
-    await CreateCard(userId, boardId, listId, details.title, details.description, (result) => {
+    await CreateCard(userId, boardId, listId, details.title, details.description, async (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
-        sleep(1000);
+        await sleep(200 * count);
         this.createNewCard(userId, boardId, listId, details, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -186,9 +186,9 @@ class BoardManager {
 
   async updateBoard(userId, boardId, details, count = 0) {
     count++;
-    await EditBoard(userId, boardId, details.title, details.description, (result) => {
+    await EditBoard(userId, boardId, details.title, details.description, async (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
-        sleep(1000);
+        await sleep(200 * count);
         this.updateBoard(userId, boardId, details, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -199,9 +199,9 @@ class BoardManager {
 
   async updateCard(userId, boardId, cardId, details, count = 0) {
     count++;
-    await EditCard(userId, boardId, cardId, details.title, details.description, (result) => {
+    await EditCard(userId, boardId, cardId, details.title, details.description, async (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
-        sleep(1000);
+        await sleep(200 * count);
         this.updateCard(userId, boardId, cardId, details, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -211,9 +211,9 @@ class BoardManager {
 
   async updateList(userId, boardId, listId, details, count = 0) {
     count++;
-    await EditList(userId, boardId, listId, details.title, (result) => {
+    await EditList(userId, boardId, listId, details.title, async (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
-        sleep(1000);
+        await sleep(200 * count);
         this.updateList(userId, boardId, listId, details, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -223,9 +223,10 @@ class BoardManager {
 
   async moveList(userId, boardId, listId, newIndex, count = 0) {
     count++;
-    await MoveList(userId, boardId, listId, newIndex, (result) => {
+    await MoveList(userId, boardId, listId, newIndex, async (result) => {
+      console.log(result, count);
       if (!result.success && result.status == "DB" && count < 5) {
-        sleep(1000);
+        sleep(200 * count);
         this.moveList(userId, boardId, listId, newIndex, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -235,9 +236,9 @@ class BoardManager {
 
   async moveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, count = 0) {
     count++;
-    await MoveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, (result) => {
+    await MoveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, async (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
-        sleep(1000);
+        await sleep(200 * count);
         this.moveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -247,9 +248,9 @@ class BoardManager {
 
   async deleteBoard(userId, boardId, count = 0) {
     count++;
-    await DeleteBoard(boardId, userId, (result) => {
+    await DeleteBoard(boardId, userId, async (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
-        sleep(1000);
+        await sleep(200 * count);
         this.deleteBoard(userId, boardId, count);
       } else if (result.success) {
         this.deleteBoardSubscription(boardId);
@@ -259,9 +260,9 @@ class BoardManager {
 
   async deleteCard(userId, boardId, cardId, count = 0) {
     count++;
-    await DeleteCard(userId, boardId, cardId, (result) => {
+    await DeleteCard(userId, boardId, cardId, async (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
-        sleep(1000);
+        await sleep(200 * count);
         this.deleteCard(userId, boardId, cardId, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -271,9 +272,9 @@ class BoardManager {
 
   async deleteList(userId, boardId, listId, count = 0) {
     count++;
-    await DeleteList(userId, boardId, listId, (result) => {
+    await DeleteList(userId, boardId, listId, async (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
-        sleep(1000);
+        await sleep(200 * count);
         this.deleteList(userId, boardId, listId, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -283,8 +284,9 @@ class BoardManager {
 
   async inviteToBoard(userId, boardId, memberId, count = 0) {
     count++;
-    await AddMember(userId, boardId, memberId, (result) => {
+    await AddMember(userId, boardId, memberId, async (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
+        await sleep(200 * count);
         this.inviteToBoard(userId, boardId, memberId, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -295,8 +297,9 @@ class BoardManager {
 
   async inviteToCard(userId, boardId, cardId, memberId, count = 0) {
     count++;
-    await AddCardMembers(userId, boardId, cardId, memberId, (result) => {
+    await AddCardMembers(userId, boardId, cardId, memberId, async (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
+        await sleep(200 * count);
         this.inviteToCard(userId, boardId, cardId, memberId, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -306,9 +309,10 @@ class BoardManager {
 
   async removeFromCard(userId, boardId, cardId, members, count = 0) {
     count++;
-    await RemoveCardMembers(userId, boardId, cardId, members, (result) => {
+    await RemoveCardMembers(userId, boardId, cardId, members, async (result) => {
       console.log(result);
       if (!result.success && result.status == "DB" && count < 5) {
+        await sleep(200 * count);
         this.removeFromCard(userId, boardId, cardId, members, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -318,9 +322,10 @@ class BoardManager {
 
   async removeFromBoard(userId, boardId, members, count = 0) {
     count++;
-    await RemoveMembers(userId, boardId, members, (result) => {
+    await RemoveMembers(userId, boardId, members, async (result) => {
       console.log(result);
       if (!result.success && result.status == "DB" && count < 5) {
+        await sleep(200 * count);
         this.removeFromBoard(userId, boardId, members, count = 0);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -331,8 +336,9 @@ class BoardManager {
 
   async leaveBoard(userId, boardId, count = 0) {
     count++;
-    await LeaveBoard(userId, boardId, (result) => {
+    await LeaveBoard(userId, boardId, async (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
+        await sleep(200 * count);
         this.leaveBoard(userId, boardId, count);
       } else if (result.success) {
         this.sendBoard(boardId);
@@ -343,8 +349,9 @@ class BoardManager {
 
   async transferOwnershipBoard(userId, boardId, newOwnerId, count = 0) {
     count++;
-    await ChangeOwner(userId, boardId, newOwnerId, (result) => {
+    await ChangeOwner(userId, boardId, newOwnerId, async (result) => {
       if (!result.success && result.status == "DB" && count < 5) {
+        await sleep(200 * count);
         this.transferOwnershipBoard(userId, boardId, newOwnerId, count);
       } else if (result.success) {
         this.sendBoard(boardId);
