@@ -6,7 +6,7 @@ const ListHandler = require("../helpers/list_handler");
 const Lock = require("./lock_model");
 const { encrypt, decrypt } = require('../helpers/crypt');
 const mediator = require('./mediator');
-const { OwnerAdminValidator, AdminValidator } = require("./Permission_validator");
+const { OwnerAdminValidator, AdminValidator, MemberValidator } = require("./Permission_validator");
 const { findOne } = require("../models/user_model");
 
 mediator.on('UpdateBoardLastEdited', async function (boardId) {
@@ -600,21 +600,21 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
                         const index = cards[i].members.indexOf(member_id[x]);
                         if (index >= 0) {
                             cards[i].members.splice(index, 1);
-                       }
-                   }
-                   Lock.LockModel(cards[i],
-                    function(){
-                        cards[i].save();
-                    },
-                    function(err, result){
+                        }
+                    }
+                    Lock.LockModel(cards[i],
+                        function () {
+                            cards[i].save();
+                        },
+                        function (err, result) {
 
                         });
                 }
                 for (let y = 0; y < member_id.length; y++) {
-                   const boardIndex = board.members.indexOf(member_id[y]);
-                   if(boardIndex >= 0){
-                       board.members.splice(boardIndex, 1);
-                   }
+                    const boardIndex = board.members.indexOf(member_id[y]);
+                    if (boardIndex >= 0) {
+                        board.members.splice(boardIndex, 1);
+                    }
                 }
                 board.save();
             },
@@ -637,6 +637,50 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
             success: false,
             message: "medlem blev ikke fjernet. " + err
         });
+    }
+}
+
+async function LeaveBoard(user_id, board_id, callback) {
+    try {
+        const valid = !MemberValidator(user_id, board_id);
+        if (!valid) {
+            callback({
+                success: false,
+                message: 'Bruger er ikke medlem'
+            });
+            return;
+        }
+
+        const board = await Board.findOne({ _id: board_id });
+
+        let isMember = false;
+
+        for (let i = 0; i < board.members.length; i++) {
+            const member = board.members[i];
+            if (member._id == user_id) {
+                isMember = true;
+                break;
+            }
+        }
+
+        if (!isMember) {
+            callback({
+                success: false,
+                message: 'Bruger er ikke medlem'
+            });
+            return;
+        }
+
+        Lock.LockModel(board,
+            () => {
+
+            }, () => {
+
+            });
+
+
+    } catch {
+
     }
 }
 

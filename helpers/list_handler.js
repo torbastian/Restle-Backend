@@ -76,13 +76,12 @@ async function CreateList(user_id, board_id, title, callback) {
                     callback(err);
                     return;
                 }
-                if (newList && board) {
-                    callback({
-                        success: true,
-                        message: "Liste blev oprettet",
-                        object: newList
-                    });
-                }
+
+                callback({
+                    success: true,
+                    message: "Liste blev oprettet",
+                    object: newList
+                });
             });
     } catch (err) {
         callback({
