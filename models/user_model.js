@@ -1,3 +1,5 @@
+const lockRelease = require('mongoose-lock-release');
+const Lock = require("../helpers/lock_model");
 const mongoose = require('mongoose');
 
 //Schemas
@@ -35,6 +37,9 @@ var UserSchema = new mongoose.Schema({
         default: false
     }
 });
+
+//plugins
+UserSchema.plugin(lockRelease, 'Lists');
 
 //Compiled model
 

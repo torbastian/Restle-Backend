@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const { reqToUser } = require('../helpers/req_converter');
 const { isAdmin } = require("../helpers/Permission_validator");
 const { registerValidation, loginValidation } = require('../helpers/validation');
-const { signUserToken, newUser, getUserInfo } = require('../helpers/user_helper');
+const { signUserToken, newUser, getUserInfo, DeleteUser } = require('../helpers/user_helper');
 const { ValidateToken } = require('../helpers/token_handler');
 const { SendEmailReset } = require('../helpers/mail_handler');
 const Crypto = require('crypto');
@@ -172,7 +172,10 @@ router.delete('/:userId', ValidateToken, async (req, res) => {
     return res.status(400).send({ message: 'Denied' });
   }
   else {
-    userToDelete.deleteOne();
+    DeleteUser(userToDelete. _id, function(result){
+      console.log("result", result);
+    });
+    //userToDelete.deleteOne();
     if(!admin){
     return res.clearCookie('JWT').send();
     }

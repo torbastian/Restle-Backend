@@ -377,6 +377,7 @@ async function CreateBoard(user_id, title, owner, description, callback) {
 }
 
 async function DeleteBoard(board_id, user_id, callback) {
+    console.log("BoardHandler DeleteBoard entered");
     try {
         const valid = await OwnerAdminValidator(user_id, board_id);
         if (!valid) {
@@ -387,37 +388,44 @@ async function DeleteBoard(board_id, user_id, callback) {
         }
 
         board = await Board.findOne({ _id: board_id });
+        console.log("BoardHandler Lock Board");
         Lock.LockModel(board,
             async function () {
-                lists = await List.find({
-                    board: board._id
-                });
+                lists = await List.find({board: board._id});
                 if (lists) {
                     lists.forEach(list => {
+                        console.log("BoardHandler Lock list ", list._id);
                         Lock.LockModel(list, function () {
+                            console.log("list locked deleted");
                             list.deleteOne();
                         },
                             function (err, result) {
-
+                                if(err){
+                                    console.log("list lock err ", err);
+                                }
                             })
                     })
                 }
                 cards = await Card.find({ board: board._id });
                 if (cards) {
                     cards.forEach(card => {
+                        console.log("BoardHandler Lock Card ", card._id);
                         Lock.LockModel(card, function () {
+                            console.log("list locked deleted");
                             card.deleteOne();
                         },
                             function (err, result) {
-
+                                console.log("card lock err ", err);
                             })
                     });
                 }
+                console.log("BoardHandler board being deleted");
                 board.deleteOne();
                 return true;
             },
             function (err, result) {
                 if (err) {
+                    console.log("board lock err ", err);
                     callback(err);
                     return;
                 }
