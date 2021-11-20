@@ -1,12 +1,27 @@
 const User = require("../models/user_model")
 const Board = require("../models/board_model");
 
+async function AdminSelfValidator(actor_id, subject_id){
+  try{
+    const actorUser = await User.findOne({_id: actor_id});
+    const subjectUser = await User.find({_id: subject_id});
+  
+    if(isAdmin(actor_id)|| isSelf(actorUser._id, subjectUser._id)){
+      return true;
+    }else{
+      return false;
+    }
+  }catch(err){
+    return false;
+  }
+}
+
 async function OwnerAdminValidator(user_id, board_id) {
   try {
     const board = await Board.findOne({ _id: board_id });
     const user = await User.findOne({ _id: user_id });
 
-    if (isAdmin(user) || isOwner(user._id, board)) {
+    if (isAdmin(user._id) || isOwner(user._id, board)) {
       return true;
     } else {
       return false;
@@ -58,7 +73,13 @@ function isOwner(user_id, board) {
   return result;
 }
 
+function isSelf(user_one_id, user_two_id){
+  const result = user_one_id.toString() == user_two_id.toString();
+  return result;
+}
+
 exports.OwnerAdminValidator = OwnerAdminValidator;
+exports.AdminSelfValidator = AdminSelfValidator;
 exports.AdminValidator = AdminValidator;
 exports.MemberValidator = MemberValidator;
 exports.isAdmin = isAdmin;
