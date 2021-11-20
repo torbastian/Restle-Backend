@@ -242,6 +242,7 @@ class BoardManager {
         await sleep(200 * count);
         this.moveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, count);
       } else if (result.success) {
+
         this.sendBoard(boardId);
       }
     });

@@ -68,6 +68,11 @@ async function CreateCard(user_id, board_id, list_id, title, description, callba
                     await list.cards.push(newCard._id);
                     await list.save();
                     await newCard.save();
+                    callback({
+                        success: true,
+                        message: "Kort er blevet gemt",
+                        object: newCard
+                    });
                     return true;
                 } else {
                     return false;
@@ -76,13 +81,6 @@ async function CreateCard(user_id, board_id, list_id, title, description, callba
             function (err, result) {
                 if (err) {
                     callback(err);
-                }
-                if (newCard) {
-                    callback({
-                        success: true,
-                        message: "Kort er blevet gemt",
-                        object: newCard
-                    });
                 }
             });
     } catch (err) {
