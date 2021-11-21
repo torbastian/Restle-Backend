@@ -391,7 +391,7 @@ async function DeleteBoard(board_id, user_id, callback) {
         console.log("BoardHandler Lock Board");
         Lock.LockModel(board,
             async function () {
-                lists = await List.find({board: board._id});
+                lists = await List.find({ board: board._id });
                 if (lists) {
                     lists.forEach(list => {
                         console.log("BoardHandler Lock list ", list._id);
@@ -400,7 +400,7 @@ async function DeleteBoard(board_id, user_id, callback) {
                             list.deleteOne();
                         },
                             function (err, result) {
-                                if(err){
+                                if (err) {
                                     console.log("list lock err ", err);
                                 }
                             })
@@ -458,19 +458,20 @@ async function EditBoard(user_id, board_id, title, description, callback) {
 
         board = await Board.findOne({ _id: board_id });
         Lock.LockModel(board,
-            function () {
+            async function () {
                 board.title = title;
                 board.description = encrypt(description);
-                board.save();
+                await board.save();
+                callback({
+                    success: true,
+                    message: "Board title blev ændret til " + board.title,
+                    object: board
+                })
                 return true;
             },
             function (err, result) {
-                if (board) {
-                    callback({
-                        success: true,
-                        message: "Board title blev ændret til " + board.title,
-                        object: board
-                    })
+                if (err) {
+                    callback(err);
                 }
             }
         );

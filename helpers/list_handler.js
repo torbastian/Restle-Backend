@@ -174,6 +174,7 @@ async function EditList(user_id, board_id, list_id, title, callback) {
         });
         return;
     }
+
     if (title.length > 40) {
         callback({
             success: false,
@@ -181,25 +182,24 @@ async function EditList(user_id, board_id, list_id, title, callback) {
         });
         return;
     }
+
     try {
         list = await List.findOne({ _id: list_id });
         Lock.LockModel(list,
-            function () {
+            async function () {
                 list.title = title;
-                list.save();
+                await list.save();
+                callback({
+                    success: true,
+                    message: "Liste title er blivet ændret til " + title,
+                    object: list
+                });
                 return true;
             },
             function (err, result) {
                 if (err) {
                     callback(err);
                     return;
-                }
-                if (list) {
-                    callback({
-                        success: true,
-                        message: "Liste title er blivet ændret til " + title,
-                        object: list
-                    });
                 }
             });
     } catch (err) {
