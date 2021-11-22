@@ -376,6 +376,8 @@ class BoardManager {
 
       board = board.object;
 
+      board = decryptBoard(board);
+
       subscriptions.forEach(sub => {
         if (board.owner._id == sub.userId) {
           const listUpdate = JSON.stringify({

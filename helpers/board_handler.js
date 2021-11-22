@@ -4,7 +4,7 @@ const User = require("../models/user_model");
 const Card = require("../models/card_model");
 const ListHandler = require("../helpers/list_handler");
 const Lock = require("./lock_model");
-const { encrypt, decrypt } = require('../helpers/crypt');
+const { encrypt, decrypt, decryptBoard } = require('../helpers/crypt');
 const mediator = require('./mediator');
 const { OwnerAdminValidator, AdminValidator, MemberValidator } = require("./Permission_validator");
 const { findOne } = require("../models/user_model");
@@ -171,8 +171,7 @@ async function GetAdminBoardOverview(userId, query, callback) {
 
 
         boards.forEach(board => {
-            board.title = decrypt(board.title);
-            board.description = decrypt(board.description);
+            board = decryptBoard(board);
         });
 
         callback({
@@ -266,8 +265,8 @@ async function GetBoardList(boardId) {
             })
             .select('-lists');
 
-        board.title = decrypt(board.title);
-        board.description = decrypt(board.description);
+        //board.title = decrypt(board.title);
+        //board.description = decrypt(board.description);
         console.log("TEST GetBoardList");
 
         if (!board) {
