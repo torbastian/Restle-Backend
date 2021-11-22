@@ -420,7 +420,12 @@ async function DeleteBoard(board_id, user_id, callback) {
                     });
                 }
                 console.log("BoardHandler board being deleted");
-                board.deleteOne();
+                await board.deleteOne();
+                callback({
+                    success: true,
+                    message: "Board " + board.title + " blev slettet ",
+                    object: board
+                });
                 return true;
             },
             function (err, result) {
@@ -428,13 +433,6 @@ async function DeleteBoard(board_id, user_id, callback) {
                     console.log("board lock err ", err);
                     callback(err);
                     return;
-                }
-                if (board) {
-                    callback({
-                        success: true,
-                        message: "Board " + board.title + " blev slettet ",
-                        object: board
-                    });
                 }
             }
         );
