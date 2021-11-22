@@ -39,7 +39,7 @@ async function CreateToken(user_id, user_token){
   if(token){
     return{
       success: false,
-      message: "token eller bruger findes allerede i databasem"
+      message: "token eller bruger findes allerede i databasen"
     }
   }else{
     try{

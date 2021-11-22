@@ -224,9 +224,7 @@ router.get('/getUsers', ValidateToken, async (req, res) => {
 });
 
 router.post('/resetPassword', async (req, res) => {
-  console.log("HEJ");
   const email = req.body.email;
-  console.log("email ", email);
 
   if(email){
     const user = await User.findOne({email: email});
