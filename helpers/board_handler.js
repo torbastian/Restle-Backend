@@ -342,12 +342,14 @@ async function CreateBoard(user_id, title, owner, description, callback) {
             success: false,
             message: "title er for lang, max 40 charatere"
         });
+        return;
     }
     if (description.length > 1024) {
         callback({
             success: false,
             message: "description er for lang, max 1024 charatere"
         });
+        return;
     }
 
     const newBoard = new Board({
@@ -384,6 +386,7 @@ async function DeleteBoard(board_id, user_id, callback) {
                 success: false,
                 message: "kun board ejer og admins kan slette boardet"
             });
+            return;
         }
 
         board = await Board.findOne({ _id: board_id });
@@ -451,6 +454,7 @@ async function EditBoard(user_id, board_id, title, description, callback) {
                 success: false,
                 message: "kun board ejer og admins kan redigere board"
             });
+            return;
         }
 
         board = await Board.findOne({ _id: board_id });
@@ -488,6 +492,7 @@ async function AddMember(user_id, board_id, member_id, callback) {
                 success: false,
                 message: "kun board ejer og admins kan tilføje board medlemmer"
             });
+            return;
         }
 
         board = await Board.findOne({ _id: board_id });
@@ -525,6 +530,7 @@ async function RemoveMember(user_id, board_id, member_id, callback) {
                 success: false,
                 message: "kun board ejer og admins kan fjerne board medlemmer"
             });
+            return;
         }
 
         const board = await Board.findOne({ _id: board_id });
@@ -728,6 +734,7 @@ async function ChangeOwner(user_id, board_id, owner_id, callback) {
                 success: false,
                 message: "kun board ejer og admins kan ændre board ejer"
             });
+            return;
         }
 
         const user = await User.findOne({ _id: new_owner_id });
@@ -737,6 +744,7 @@ async function ChangeOwner(user_id, board_id, owner_id, callback) {
                 success: false,
                 message: 'Bruger kunne ikke findes'
             });
+            return;
         }
 
         const board = await Board.findOne({ _id: board_id });
@@ -746,6 +754,7 @@ async function ChangeOwner(user_id, board_id, owner_id, callback) {
                 success: false,
                 message: 'Board kunne ikke findes'
             });
+            return;
         }
 
         result = Lock.LockModel(board,
@@ -801,6 +810,7 @@ async function AddBoardList(user_id, board_id, list_id, callback) {
                 success: false,
                 message: "kun board ejer og admins kan tilføje liste til board"
             });
+            return;
         }
 
         board = await Board.findOne({ _id: board_id });

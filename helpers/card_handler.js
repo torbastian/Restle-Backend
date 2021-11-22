@@ -231,6 +231,7 @@ async function AddCardMembers(user_id, board_id, card_id, member_id, callback) {
             success: false,
             message: "member_id er ikke et array"
         });
+        return;
     }
 
 
