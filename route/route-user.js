@@ -26,11 +26,9 @@ router.post('/register', async (req, res) => {
   const user = newUser(reqUser);
 
   try {
-    //Hvis brugern bliver gemt
-    //Send en token med tilbage
-    await user.save().then(savedUser => {
-      signUserToken(savedUser, res);
-    })
+    //Brugeren bliver gemt
+    await user.save();
+    res.status(200).send();
   } catch (err) {
     res.status(400).send(err);
   }
