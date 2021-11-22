@@ -57,11 +57,16 @@ async function CreateList(user_id, board_id, title, callback) {
 
         board = await Board.findOne({ _id: board_id });
         result = Lock.LockModel(board,
-            function () {
+            async function () {
                 if (!board.lists.includes(newList._id)) {
                     board.lists.push(newList._id);
-                    newList.save();
-                    board.save();
+                    await newList.save();
+                    await board.save();
+                    callback({
+                        success: true,
+                        message: "Liste blev oprettet",
+                        object: newList
+                    });
                     return true;
                 } else {
                     callback({
@@ -76,13 +81,6 @@ async function CreateList(user_id, board_id, title, callback) {
                     callback(err);
                     return;
                 }
-
-                callback({
-                    success: true,
-                    message: "Liste blev oprettet",
-                    object: newList
-                });
-                return;
             });
 
         callback({
@@ -176,6 +174,7 @@ async function EditList(user_id, board_id, list_id, title, callback) {
         });
         return;
     }
+
     if (title.length > 40) {
         callback({
             success: false,
@@ -183,25 +182,24 @@ async function EditList(user_id, board_id, list_id, title, callback) {
         });
         return;
     }
+
     try {
         list = await List.findOne({ _id: list_id });
         Lock.LockModel(list,
-            function () {
+            async function () {
                 list.title = title;
-                list.save();
+                await list.save();
+                callback({
+                    success: true,
+                    message: "Liste title er blivet ændret til " + title,
+                    object: list
+                });
                 return true;
             },
             function (err, result) {
                 if (err) {
                     callback(err);
                     return;
-                }
-                if (list) {
-                    callback({
-                        success: true,
-                        message: "Liste title er blivet ændret til " + title,
-                        object: list
-                    });
                 }
             });
     } catch (err) {
@@ -227,12 +225,17 @@ async function AddCard(user_id, board_id, list_id, card_id, callback) {
         Lock.LockModel(list,
             function () {
                 Lock.LockModel(card,
-                    function () {
+                    async function () {
                         if (!list.cards.includes(card_id)) {
                             list.cards.push(card_id);
                             card.list = list_id;
-                            list.save();
-                            card.save();
+                            await list.save();
+                            await card.save();
+                            callback({
+                                success: true,
+                                message: "Kort " + card.title + " er blevet tilføjet til listen",
+                                object: list
+                            });
                             return true;
                         }
                     },
@@ -242,12 +245,6 @@ async function AddCard(user_id, board_id, list_id, card_id, callback) {
                             return;
                         }
                         if (list && card) {
-                            callback({
-                                success: true,
-                                message: "Kort " + card.title + " er blevet tilføjet til listen",
-                                object: list
-                            });
-                            return;
                         }
                     });
             },

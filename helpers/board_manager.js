@@ -242,6 +242,7 @@ class BoardManager {
         await sleep(200 * count);
         this.moveCard(userId, boardId, cardToMoveId, oldListId, newListId, destinationIndex, count);
       } else if (result.success) {
+
         this.sendBoard(boardId);
       }
     });
@@ -374,6 +375,8 @@ class BoardManager {
       if (!board.success) return;
 
       board = board.object;
+
+      board = decryptBoard(board);
 
       subscriptions.forEach(sub => {
         if (board.owner._id == sub.userId) {

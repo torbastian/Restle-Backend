@@ -4,7 +4,7 @@ const User = require("../models/user_model");
 const Card = require("../models/card_model");
 const ListHandler = require("../helpers/list_handler");
 const Lock = require("./lock_model");
-const { encrypt, decrypt } = require('../helpers/crypt');
+const { encrypt, decrypt, decryptBoard } = require('../helpers/crypt');
 const mediator = require('./mediator');
 const { OwnerAdminValidator, AdminValidator, MemberValidator } = require("./Permission_validator");
 const { findOne } = require("../models/user_model");
@@ -171,8 +171,7 @@ async function GetAdminBoardOverview(userId, query, callback) {
 
 
         boards.forEach(board => {
-            board.title = decrypt(board.title);
-            board.description = decrypt(board.description);
+            board = decryptBoard(board);
         });
 
         callback({
@@ -266,8 +265,8 @@ async function GetBoardList(boardId) {
             })
             .select('-lists');
 
-        board.title = decrypt(board.title);
-        board.description = decrypt(board.description);
+        //board.title = decrypt(board.title);
+        //board.description = decrypt(board.description);
         console.log("TEST GetBoardList");
 
         if (!board) {
@@ -391,7 +390,7 @@ async function DeleteBoard(board_id, user_id, callback) {
         console.log("BoardHandler Lock Board");
         Lock.LockModel(board,
             async function () {
-                lists = await List.find({board: board._id});
+                lists = await List.find({ board: board._id });
                 if (lists) {
                     lists.forEach(list => {
                         console.log("BoardHandler Lock list ", list._id);
@@ -400,7 +399,7 @@ async function DeleteBoard(board_id, user_id, callback) {
                             list.deleteOne();
                         },
                             function (err, result) {
-                                if(err){
+                                if (err) {
                                     console.log("list lock err ", err);
                                 }
                             })
@@ -420,7 +419,12 @@ async function DeleteBoard(board_id, user_id, callback) {
                     });
                 }
                 console.log("BoardHandler board being deleted");
-                board.deleteOne();
+                await board.deleteOne();
+                callback({
+                    success: true,
+                    message: "Board " + board.title + " blev slettet ",
+                    object: board
+                });
                 return true;
             },
             function (err, result) {
@@ -428,13 +432,6 @@ async function DeleteBoard(board_id, user_id, callback) {
                     console.log("board lock err ", err);
                     callback(err);
                     return;
-                }
-                if (board) {
-                    callback({
-                        success: true,
-                        message: "Board " + board.title + " blev slettet ",
-                        object: board
-                    });
                 }
             }
         );
@@ -458,19 +455,20 @@ async function EditBoard(user_id, board_id, title, description, callback) {
 
         board = await Board.findOne({ _id: board_id });
         Lock.LockModel(board,
-            function () {
+            async function () {
                 board.title = title;
                 board.description = encrypt(description);
-                board.save();
+                await board.save();
+                callback({
+                    success: true,
+                    message: "Board title blev ændret til " + board.title,
+                    object: board
+                })
                 return true;
             },
             function (err, result) {
-                if (board) {
-                    callback({
-                        success: true,
-                        message: "Board title blev ændret til " + board.title,
-                        object: board
-                    })
+                if (err) {
+                    callback(err);
                 }
             }
         );
