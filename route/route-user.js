@@ -19,8 +19,10 @@ router.post('/register', async (req, res) => {
   if (error) return res.status(400).send({ message: error.details[0].message });
 
   //Se om en bruger med det valgte brugernavn findes i databasen
-  const usernameExists = await User.findOne({ username: reqUser.username });
+  const usernameExists = await User.findOne({username: reqUser.username });
+  const emailExists = await User.findOne({email: reqUser.email });
   if (usernameExists) return res.status(400).send({ message: 'Username in use' });
+  if (emailExists) return res.status(400).send({ message: 'email in use' });
 
   //Opret en ny bruger
   const user = newUser(reqUser);
@@ -138,8 +140,6 @@ router.post('/admin/update', ValidateToken, async (req, res) => {
         return res.status(400).send({ message: error });
       }
   
-      console.log(req.body.new_password);
-  
       const hashedPassword = hash(req.body.new_password);
       user.password = hashedPassword;
     }
@@ -162,8 +162,6 @@ router.post('/admin/update', ValidateToken, async (req, res) => {
 
 //Delete user
 router.delete('/:userId', ValidateToken, async (req, res) => {
-  console.log(req.params.userId);
-  console.log(req.user._id);
   const userToDelete = await User.findById(req.params.userId);
   const admin = await isAdmin(req.user._id)
   if (userToDelete._id != req.user._id && !admin) {
@@ -171,7 +169,6 @@ router.delete('/:userId', ValidateToken, async (req, res) => {
   }
   else {
     DeleteUser(userToDelete. _id, function(result){
-      console.log("result", result);
     });
     //userToDelete.deleteOne();
     if(!admin){
@@ -252,7 +249,6 @@ router.post('/resetPassword', async (req, res) => {
 
 router.post('/PasswordReset', async (req, res) =>{
   const token = req.body.token;
-  console.log(req.body.password);
   const _password = hash(req.body.password);
 
   const tokenObject = await Reset.findOne({key: token});
