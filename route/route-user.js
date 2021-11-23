@@ -182,7 +182,6 @@ router.delete('/:userId', ValidateToken, async (req, res) => {
 
 //Simpel logout der sletter brugerens Json web token.
 router.get('/logout', async (req, res) => {
-  console.log("TESTESTEST0");
   res.clearCookie('JWT').send();
 });
 
@@ -234,8 +233,9 @@ router.post('/resetPassword', async (req, res) => {
       }
 
       const token = Crypto.randomBytes(48).toString('hex');
-      const expiration = new Date().now();
-      expiration.setMinutes(expiration.getMinutes() + 20);
+      const expiration = new Date();
+      const minuts = expiration.getMinutes();
+      expiration.setMinutes(minuts + 20);
       const reset = new Reset({
         user: user._id,
         key: token,
