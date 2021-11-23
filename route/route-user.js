@@ -260,12 +260,13 @@ router.post('/PasswordReset', async (req, res) =>{
       password: req.body.password
     };
 
-    const { registerError } = loginValidation(newUser);
-    if (registerError) return res.status(400).send({ message: error.details[0].message });
+    const { error } = loginValidation(newUser);
+    if (error) return res.status(400).send({ message: error.details[0].message });
 
     if(user){
       user.password = _password;
       user.save();
+      return res.status(200).send();
     }
   }
 });
