@@ -17,7 +17,7 @@ function registerValidation(data) {
 
     return joiSchema.validate(data);
   }else{
-    return{error: "Password skal indeholde et stort bogstav og et speciel tegn"}
+    return{error: {details: [{message:"Password skal indeholde et stort bogstav og et speciel tegn"}]}}
   }
 }
 
@@ -32,7 +32,7 @@ function loginValidation(data) {
   
     return joiSchema.validate(data);
   }else{
-    return{error: "Password skal indeholde et stort bogstav og et speciel tegn"}
+    return{error: {details: [{message:"Password skal indeholde et stort bogstav og et speciel tegn"}]}}
   }
   
 }
