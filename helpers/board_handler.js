@@ -497,20 +497,21 @@ async function AddMember(user_id, board_id, member_id, callback) {
 
         board = await Board.findOne({ _id: board_id });
         Lock.LockModel(board,
-            function () {
+            async function () {
                 if (!board.members.includes(member_id)) {
                     board.members.push(member_id);
-                    board.save();
-                    return true;
-                }
-            },
-            function (err, result) {
-                if (board) {
+                    await board.save();
                     callback({
                         success: true,
                         message: "Board medlem blev tilføjet",
                         object: board
                     })
+                    return true;
+                }
+            },
+            function (err, result) {
+                if (err) {
+                    callback(err);
                 }
             }
         );
