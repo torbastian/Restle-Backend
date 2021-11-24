@@ -82,6 +82,3 @@ exports.OwnerAdminValidator = OwnerAdminValidator;
 exports.AdminSelfValidator = AdminSelfValidator;
 exports.AdminValidator = AdminValidator;
 exports.MemberValidator = MemberValidator;
-exports.isAdmin = isAdmin;
-exports.isMember = isMember;
-exports.isOwner = isOwner;
