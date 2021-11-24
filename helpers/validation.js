@@ -1,26 +1,38 @@
 const Joi = require('joi');
 
 function registerValidation(data) {
-  console.log(data);
-  const joiSchema = Joi.object({
-    username: Joi.string().min(4).max(16).required(),
-    password: Joi.string().regex(new RegExp("^(?=.*[A-Z])(?=.*[!\"#¤%&()=?;:_*^'¨.,\\-\\/\\\\@£$€\\{\\[\\]\\}<>]).*$")).min(8).max(40).required(),
-    first_name: Joi.string().min(1).max(40).required(),
-    last_name: Joi.string().min(1).max(40).required(),
-    email: Joi.string().email(),
-    colour: Joi.string().min(4).max(8)
-  }).unknown();
+  const regex = new RegExp("^(?=.*[A-Z])(?=.*[!\"#¤%&()=?;:_*^'¨.,\\-\\/\\\\@£$€\\{\\[\\]\\}<>]).*$");
 
-  return joiSchema.validate(data);
+  if(regex.test(data.password)){
+    const joiSchema = Joi.object({
+      username: Joi.string().min(4).max(16).required(),
+      password: Joi.string().min(8).max(40).required(),
+      first_name: Joi.string().min(1).max(40).required(),
+      last_name: Joi.string().min(1).max(40).required(),
+      email: Joi.string().email(),
+      colour: Joi.string().min(4).max(8)
+    }).unknown();
+  
+    return joiSchema.validate(data);
+  }else{
+    return new Error("Password skal indeholde et stort bogstav og et speciel tegn");
+  }
 }
 
 function loginValidation(data) {
-  const joiSchema = Joi.object({
-    username: Joi.string().min(4).max(16).required(),
-    password: Joi.string().regex(new RegExp("^(?=.*[A-Z])(?=.*[!\"#¤%&()=?;:_*^'¨.,\\-\\/\\\\@£$€\\{\\[\\]\\}<>]).*$")).min(8).max(40).required()
-  }).unknown();
-
-  return joiSchema.validate(data);
+  const regex = new RegExp("^(?=.*[A-Z])(?=.*[!\"#¤%&()=?;:_*^'¨.,\\-\\/\\\\@£$€\\{\\[\\]\\}<>]).*$");
+  
+  if(regex.test(data.password)){
+    const joiSchema = Joi.object({
+      username: Joi.string().min(4).max(16).required(),
+      password: Joi.string().min(8).max(40).required()
+    }).unknown();
+  
+    return joiSchema.validate(data);
+  }else{
+    return new Error("Password skal indeholde et stort bogstav og et speciel tegn");
+  }
+  
 }
 
 exports.registerValidation = registerValidation;
