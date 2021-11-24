@@ -15,13 +15,13 @@ function registerValidation(data) {
   
     return joiSchema.validate(data);
   }else{
-    return new Error("Password skal indeholde et stort bogstav og et speciel tegn");
+    return{errorMessage: "Password skal indeholde et stort bogstav og et speciel tegn"}
   }
 }
 
 function loginValidation(data) {
   const regex = new RegExp("^(?=.*[A-Z])(?=.*[!\"#¤%&()=?;:_*^'¨.,\\-\\/\\\\@£$€\\{\\[\\]\\}<>]).*$");
-  
+
   if(regex.test(data.password)){
     const joiSchema = Joi.object({
       username: Joi.string().min(4).max(16).required(),
@@ -30,7 +30,7 @@ function loginValidation(data) {
   
     return joiSchema.validate(data);
   }else{
-    return new Error("Password skal indeholde et stort bogstav og et speciel tegn");
+    return{errorMessage: "Password skal indeholde et stort bogstav og et speciel tegn"}
   }
   
 }
