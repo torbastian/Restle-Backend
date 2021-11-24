@@ -184,11 +184,11 @@ async function EditCard(user_id, board_id, card_id, title, description, callback
 }
 
 async function AddCardMember(user_id, board_id, card_id, member_id, callback) {
-    const valid = OwnerAdminValidator(user_id, board_id);
+    const valid = MemberValidator(user_id, board_id);
     if (!valid) {
         callback({
             success: false,
-            message: "kun admins eller board ejer kan fjerne kort fra listen"
+            message: "kun medlemmer kan tilføje medlemmer til kort"
         });
         return;
     }
@@ -217,7 +217,7 @@ async function AddCardMember(user_id, board_id, card_id, member_id, callback) {
 }
 
 async function AddCardMembers(user_id, board_id, card_id, member_id, callback) {
-    const valid = OwnerAdminValidator(user_id, board_id);
+    const valid = MemberValidator(user_id, board_id);
     if (!valid) {
         callback({
             success: false,
