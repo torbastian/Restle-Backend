@@ -4,7 +4,7 @@ const User = require('../models/user_model');
 const Reset = require('../models/reset_password_model');
 const jwt = require('jsonwebtoken');
 const { reqToUser } = require('../helpers/req_converter');
-const { isAdmin } = require("../helpers/Permission_validator");
+const { isAdmin, AdminValidator } = require("../helpers/Permission_validator");
 const { registerValidation, loginValidation } = require('../helpers/validation');
 const { signUserToken, newUser, getUserInfo, DeleteUser } = require('../helpers/user_helper');
 const { ValidateToken } = require('../helpers/token_handler');
@@ -120,7 +120,7 @@ router.post('/update', ValidateToken, async (req, res) => {
 
 //Update user as admin
 router.post('/admin/update', ValidateToken, async (req, res) => {
-  const verifyAdmin = await isAdmin(req.user._id);
+  const verifyAdmin = await AdminValidator(req.user._id);
   if (!verifyAdmin) return res.status(400).send({ message: 'Permission denied: User isn\'t an admin' });
 
   if(req.user._id != req.body.userid){
@@ -154,7 +154,7 @@ router.post('/admin/update', ValidateToken, async (req, res) => {
       res.status(400).send(err);
     }
   }else{
-    res.status(400).send("Kan ikke redigere admin rattigheder på sig selv");
+    res.status(400).send("Kan ikke redigere admin rettigheder på sig selv");
   }
   
 
