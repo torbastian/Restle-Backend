@@ -607,7 +607,7 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
 
         console.log('!!! Cards ', cards);
         Lock.LockModel(board,
-            function () {
+            async function () {
                 for (let i = 0; i < cards.length; i++) {
                     for (let x = 0; x < member_id.length; x++) {
                         const index = cards[i].members.indexOf(member_id[x]);
@@ -629,19 +629,18 @@ async function RemoveMembers(user_id, board_id, member_id, callback) {
                         board.members.splice(boardIndex, 1);
                     }
                 }
-                board.save();
+                await board.save();
+                callback({
+                    success: true,
+                    message: "Board medlem blev fjernet",
+                    object: board
+                });
+                return;
             },
             function (err, result) {
                 if (err) {
                     callback(err);
-                    return
-                }
-                if (board) {
-                    callback({
-                        success: true,
-                        message: "Board medlem blev fjernet",
-                        object: board
-                    })
+                    return;
                 }
             }
         );
