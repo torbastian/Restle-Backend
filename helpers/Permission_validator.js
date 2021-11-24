@@ -57,7 +57,7 @@ async function MemberValidator(user_id, board_id) {
   }
 }
 
-async function isAdmin(user) {
+function isAdmin(user) {
   //const userr = await User.findById(user);
   const result = user.isAdmin;
   return result;

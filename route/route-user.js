@@ -85,14 +85,14 @@ router.post('/update', ValidateToken, async (req, res) => {
   user.first_name = req.body.first_name;
   user.colour = req.body.colour;
   user.last_name = req.body.last_name;
-  const { registerError } = registerValidation(user);
-  if (registerError) return res.status(400).send({ message: error.details[0].message });
+  const { error } = registerValidation(user);
+  if (error) return res.status(400).send({ message: error.details[0].message });
   user.last_name = encrypt(user.last_name);
 
   if (req.body.password != null) {
 
     if ((!compare(req.body.password, user.password))) {
-      return res.status(400).send({ message: 'Wrong password' });
+      return res.status(400).send({ message: 'Fokert password' });
     }
 
 
@@ -129,8 +129,8 @@ router.post('/admin/update', ValidateToken, async (req, res) => {
     user.colour = req.body.colour;
     user.last_name = req.body.last_name;
     user.isAdmin = req.body.isAdmin;
-    const { registerError } = registerValidation(user);
-    if (registerError) return res.status(400).send({ message: error.details[0].message });
+    const { error } = registerValidation(user);
+    if (error) return res.status(400).send({ message: error.details[0].message });
     user.last_name = encrypt(user.last_name);
   
     if (req.body.new_password != null) {
