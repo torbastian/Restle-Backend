@@ -351,7 +351,9 @@ class BoardManager {
 
   async transferOwnershipBoard(userId, boardId, newOwnerId, count = 0) {
     count++;
+    console.log('NEW OWNER', newOwnerId);
     await ChangeOwner(userId, boardId, newOwnerId, async (result) => {
+      console.log(result);
       if (!result.success && result.status == "DB" && count < 5) {
         await sleep(200 * count);
         this.transferOwnershipBoard(userId, boardId, newOwnerId, count);

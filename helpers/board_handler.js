@@ -728,7 +728,7 @@ async function LeaveBoard(user_id, board_id, callback) {
 
 async function ChangeOwner(user_id, board_id, owner_id, callback) {
     try {
-        const valid = !OwnerAdminValidator(user_id, board_id);
+        const valid = OwnerAdminValidator(user_id, board_id);
         if (!valid) {
             callback({
                 success: false,
@@ -737,7 +737,7 @@ async function ChangeOwner(user_id, board_id, owner_id, callback) {
             return;
         }
 
-        const user = await User.findOne({ _id: new_owner_id });
+        const user = await User.findOne({ _id: owner_id });
 
         if (!user) {
             callback({
@@ -765,7 +765,7 @@ async function ChangeOwner(user_id, board_id, owner_id, callback) {
                     callback({
                         success: false,
                         message: 'Bruger kunne ikke findes på board'
-                    })
+                    });
                 }
 
                 const previousOwner = board.owner;
