@@ -758,7 +758,7 @@ async function ChangeOwner(user_id, board_id, owner_id, callback) {
         }
 
         result = Lock.LockModel(board,
-            function () {
+            async function () {
                 const userIndex = board.members.findIndex(u => u._id.toString() == user_id);
 
                 if (userIndex == -1) {
@@ -773,27 +773,21 @@ async function ChangeOwner(user_id, board_id, owner_id, callback) {
 
                 board.members.splice(userIndex, 1);
                 board.members.push(previousOwner);
-                board.save();
+                await board.save();
+                callback({
+                    success: true,
+                    message: board.owner + " er den nye ejer af boardet",
+                    object: board
+                })
                 return true;
             },
             function (err, result) {
-                if (board) {
-                    callback({
-                        success: true,
-                        message: board.owner + " er den nye ejer af boardet",
-                        object: board
-                    })
+                if (err) {
+                    callback(err);
+                    return;
                 }
             }
         );
-        if (result) {
-            callback(result);
-        } else {
-            function sleep(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
-            await sleep(1000);
-        }
     } catch (err) {
         callback({
             success: false,
