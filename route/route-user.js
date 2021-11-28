@@ -5,7 +5,7 @@ const Reset = require('../models/reset_password_model');
 const jwt = require('jsonwebtoken');
 const { reqToUser } = require('../helpers/req_converter');
 const { isAdmin, AdminValidator } = require("../helpers/Permission_validator");
-const { registerValidation, loginValidation } = require('../helpers/validation');
+const { registerValidation, loginValidation, updateValidation } = require('../helpers/validation');
 const { signUserToken, newUser, getUserInfo, DeleteUser } = require('../helpers/user_helper');
 const { ValidateToken } = require('../helpers/token_handler');
 const { SendEmailReset } = require('../helpers/mail_handler');
@@ -19,8 +19,8 @@ router.post('/register', async (req, res) => {
   if (error) return res.status(400).send({ message: error.details[0].message });
 
   //Se om en bruger med det valgte brugernavn findes i databasen
-  const usernameExists = await User.findOne({username: reqUser.username });
-  const emailExists = await User.findOne({email: reqUser.email });
+  const usernameExists = await User.findOne({ username: reqUser.username });
+  const emailExists = await User.findOne({ email: reqUser.email });
   if (usernameExists) return res.status(400).send({ message: 'Username in use' });
   if (emailExists) return res.status(400).send({ message: 'email in use' });
 
@@ -82,12 +82,20 @@ router.get('/', ValidateToken, async (req, res) => {
 //Update user
 router.post('/update', ValidateToken, async (req, res) => {
   const user = await User.findById(req.user._id)
+  console.log('Req body', req.body);
+
+  const userUpdate = {
+    first_name: req.body.first_name,
+    colour: req.body.colour,
+    last_name: req.body.last_name
+  }
+
+  const { error } = updateValidation(userUpdate);
+  if (error) return res.status(400).send({ message: error.details[0].message });
+
   user.first_name = req.body.first_name;
   user.colour = req.body.colour;
-  user.last_name = req.body.last_name;
-  const { error } = registerValidation(user);
-  if (error) return res.status(400).send({ message: error.details[0].message });
-  user.last_name = encrypt(user.last_name);
+  user.last_name = encrypt(req.body.last_name);
 
   if (req.body.password != null) {
 
@@ -95,8 +103,6 @@ router.post('/update', ValidateToken, async (req, res) => {
       return res.status(400).send({ message: 'Fokert password' });
     }
 
-
-    /* Kunne ikke lave en password validation der virkede, pls hjælp tor D: */
     const { error } = loginValidation({ username: user.username, password: req.body.new_password });
     if (error) {
       return res.status(400).send({ message: error });
@@ -123,7 +129,7 @@ router.post('/admin/update', ValidateToken, async (req, res) => {
   const verifyAdmin = await AdminValidator(req.user._id);
   if (!verifyAdmin) return res.status(400).send({ message: 'Permission denied: User isn\'t an admin' });
 
-  if(req.user._id != req.body.userid){
+  if (req.user._id != req.body.userid) {
     const user = await User.findById(req.body.userId);
     user.first_name = req.body.first_name;
     user.colour = req.body.colour;
@@ -132,18 +138,18 @@ router.post('/admin/update', ValidateToken, async (req, res) => {
     const { error } = registerValidation(user);
     if (error) return res.status(400).send({ message: error.details[0].message });
     user.last_name = encrypt(user.last_name);
-  
+
     if (req.body.new_password != null) {
-  
+
       const { error } = loginValidation({ username: user.username, password: req.body.new_password });
       if (error) {
         return res.status(400).send({ message: error });
       }
-  
+
       const hashedPassword = hash(req.body.new_password);
       user.password = hashedPassword;
     }
-  
+
     try {
       user.save().then(updateUser => {
         if (updateUser == user) {
@@ -153,10 +159,10 @@ router.post('/admin/update', ValidateToken, async (req, res) => {
     } catch (err) {
       res.status(400).send(err);
     }
-  }else{
+  } else {
     res.status(400).send("Kan ikke redigere admin rettigheder på sig selv");
   }
-  
+
 
 });
 
@@ -168,11 +174,11 @@ router.delete('/:userId', ValidateToken, async (req, res) => {
     return res.status(400).send({ message: 'Denied' });
   }
   else {
-    DeleteUser(userToDelete. _id, function(result){
+    DeleteUser(userToDelete._id, function (result) {
     });
     //userToDelete.deleteOne();
-    if(!admin){
-    return res.clearCookie('JWT').send();
+    if (!admin) {
+      return res.clearCookie('JWT').send();
     }
   }
 });
@@ -187,11 +193,11 @@ router.post('/AdminOverview', ValidateToken, async (req, res) => {
 });
 
 router.get('/findUser', ValidateToken, async (req, res) => {
-  users = await User.find({ $or: [{ first_name: { $regex: '.*' + req.query.search + '.*', $options: 'i' }}, { email: { $regex: '.*' + req.query.search + '.*', $options: 'i' } }] }
+  users = await User.find({ $or: [{ first_name: { $regex: '.*' + req.query.search + '.*', $options: 'i' } }, { email: { $regex: '.*' + req.query.search + '.*', $options: 'i' } }] }
     , ['_id', 'first_name', 'last_name', 'email', 'colour', 'isAdmin']);
 
-    users.forEach(function(user) {
-      user.last_name = decrypt(user.last_name);
+  users.forEach(function (user) {
+    user.last_name = decrypt(user.last_name);
   });
 
   if (!users) {
@@ -203,29 +209,29 @@ router.get('/findUser', ValidateToken, async (req, res) => {
 
 router.get('/getUsers', ValidateToken, async (req, res) => {
   users = await User.find().limit(50);
- 
 
-  users.forEach(function(user) {
+
+  users.forEach(function (user) {
     user.last_name = decrypt(user.last_name);
-});
+  });
 
 
   if (!users) {
     return res.status(400).send({ message: "no useres found" })
   } else {
-    return res.status(200).send({users});
+    return res.status(200).send({ users });
   }
 });
 
 router.post('/resetPassword', async (req, res) => {
   const email = req.body.email;
 
-  if(email){
-    const user = await User.findOne({email: email});
+  if (email) {
+    const user = await User.findOne({ email: email });
 
-    if(user){
-      resetExist = await Reset.findOne({user: user._id});
-      if(resetExist){
+    if (user) {
+      resetExist = await Reset.findOne({ user: user._id });
+      if (resetExist) {
         await resetExist.deleteOne();
       }
 
@@ -247,13 +253,13 @@ router.post('/resetPassword', async (req, res) => {
   }
 });
 
-router.post('/PasswordReset', async (req, res) =>{
+router.post('/PasswordReset', async (req, res) => {
   const token = req.body.token;
   const _password = hash(req.body.password);
 
-  const tokenObject = await Reset.findOne({key: token});
-  if(tokenObject){
-    const user = await User.findOne({_id: tokenObject.user});
+  const tokenObject = await Reset.findOne({ key: token });
+  if (tokenObject) {
+    const user = await User.findOne({ _id: tokenObject.user });
 
     const newUser = {
       username: user.username,
@@ -263,7 +269,7 @@ router.post('/PasswordReset', async (req, res) =>{
     const { error } = loginValidation(newUser);
     if (error) return res.status(400).send({ message: error.details[0].message });
 
-    if(user){
+    if (user) {
       user.password = _password;
       user.save();
       return res.status(200).send();
@@ -274,18 +280,18 @@ router.post('/PasswordReset', async (req, res) =>{
 router.post('/checkToken', async (req, res) => {
   const token = req.body.token;
 
-  if(token){
-    const confirmToken = await Reset.findOne({key: token});
-    
-    if(confirmToken){
-      if(confirmToken.expiration < Date.now()){
+  if (token) {
+    const confirmToken = await Reset.findOne({ key: token });
+
+    if (confirmToken) {
+      if (confirmToken.expiration < Date.now()) {
         res.status(400).send("token er forældet");
       }
       res.status(200).send("token findes");
-    }else{
+    } else {
       res.status(400).send("token findes ikke");
     }
-  }else{
+  } else {
     res.status(400).send("bad request");
   }
 });
