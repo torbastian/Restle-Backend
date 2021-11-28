@@ -163,7 +163,7 @@ router.post('/admin/update', ValidateToken, async (req, res) => {
 //Delete user
 router.delete('/:userId', ValidateToken, async (req, res) => {
   const userToDelete = await User.findById(req.params.userId);
-  const admin = await isAdmin(req.user._id)
+  const admin = await AdminValidator(req.user._id)
   if (userToDelete._id != req.user._id && !admin) {
     return res.status(400).send({ message: 'Denied' });
   }
