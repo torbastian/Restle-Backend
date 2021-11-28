@@ -35,8 +35,11 @@ function decrypt(string) {
 function decryptBoard(board) {
 	board.title = decrypt(board.title);
 	board.description = decrypt(board.description);
-	board.owner.last_name = decrypt(board.owner.last_name);
-
+	console.log(board.owner);
+	if(board.owner.last_name && board.owner){
+		board.owner.last_name = decrypt(board.owner.last_name);
+	}
+	
 	board.members.forEach(member => {
 		if (member.last_name) {
 			member.last_name = decrypt(member.last_name);

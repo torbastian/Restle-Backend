@@ -85,7 +85,9 @@ router.post('/update', ValidateToken, async (req, res) => {
   user.first_name = req.body.first_name;
   user.colour = req.body.colour;
   user.last_name = req.body.last_name;
+  console.log("HEJ");
   const { error } = registerValidation(user);
+  console.log("HEJ2");
   if (error) return res.status(400).send({ message: error.details[0].message });
   user.last_name = encrypt(user.last_name);
 
