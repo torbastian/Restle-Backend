@@ -125,21 +125,18 @@ async function DeleteList(user_id, board_id, list_id, callback) {
 
                         const index = board.lists.indexOf(list._id);
                         board.lists.splice(index, 1);
-                        board.save();
-                        list.deleteOne();
+                        await board.save();
+                        await list.deleteOne();
+                        callback({
+                            success: true,
+                            message: "Liste er blevet slettet",
+                            object: list
+                        });
                         return true;
                     },
                     function (err, result) {
                         if (err) {
                             callback(err);
-                            return;
-                        }
-                        if (list && board) {
-                            callback({
-                                success: true,
-                                message: "Liste er blevet slettet",
-                                object: list
-                            });
                             return;
                         }
                     })
@@ -148,13 +145,6 @@ async function DeleteList(user_id, board_id, list_id, callback) {
                 if (err) {
                     callback(err);
                     return;
-                }
-                if (list) {
-                    callback({
-                        success: true,
-                        message: "Liste blev slettet",
-                        object: list
-                    });
                 }
             });
     } catch (err) {
