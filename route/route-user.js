@@ -103,10 +103,12 @@ router.post('/update', ValidateToken, async (req, res) => {
       return res.status(400).send({ message: 'Fokert password' });
     }
 
+    console.log("TESTEST")
     const { error } = loginValidation({ username: user.username, password: req.body.new_password });
     if (error) {
-      return res.status(400).send({ message: error });
+      return res.status(400).send({ message: error.details[0].message });
     }
+    console.log("TESTEST2")
 
     const hashedPassword = hash(req.body.new_password);
     user.password = hashedPassword;
@@ -126,24 +128,33 @@ router.post('/update', ValidateToken, async (req, res) => {
 
 //Update user as admin
 router.post('/admin/update', ValidateToken, async (req, res) => {
+
   const verifyAdmin = await AdminValidator(req.user._id);
   if (!verifyAdmin) return res.status(400).send({ message: 'Permission denied: User isn\'t an admin' });
 
   if (req.user._id != req.body.userid) {
     const user = await User.findById(req.body.userId);
+
+    const userUpdate = {
+      first_name: req.body.first_name,
+      colour: req.body.colour,
+      last_name: req.body.last_name
+    }
+
+    const { error } = updateValidation(userUpdate);
+  if (error) return res.status(400).send({ message: error.details[0].message });
+
     user.first_name = req.body.first_name;
     user.colour = req.body.colour;
-    user.last_name = req.body.last_name;
+    user.last_name = encrypt(req.body.last_name);
     user.isAdmin = req.body.isAdmin;
-    const { error } = registerValidation(user);
-    if (error) return res.status(400).send({ message: error.details[0].message });
-    user.last_name = encrypt(user.last_name);
+
 
     if (req.body.new_password != null) {
-
+      
       const { error } = loginValidation({ username: user.username, password: req.body.new_password });
       if (error) {
-        return res.status(400).send({ message: error });
+        return res.status(400).send({ message: error.details[0].message });
       }
 
       const hashedPassword = hash(req.body.new_password);
