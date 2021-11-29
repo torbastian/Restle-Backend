@@ -95,7 +95,10 @@ router.post('/update', ValidateToken, async (req, res) => {
 
   user.first_name = req.body.first_name;
   user.colour = req.body.colour;
-  user.last_name = encrypt(req.body.last_name);
+  if(user.last_name){
+    user.last_name = encrypt(req.body.last_name);
+  }
+  
 
   if (req.body.password != null) {
 
